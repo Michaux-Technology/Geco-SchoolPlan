@@ -1,0 +1,2810 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import io from 'socket.io-client';
+import {
+  Box,
+  Button,
+  Container,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Grid,
+  Paper,
+  Typography,
+  IconButton,
+  Tooltip,
+  Alert,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Select,
+  FormControl,
+  InputAdornment,
+  InputLabel,
+  Chip
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ContentPasteIcon from '@mui/icons-material/ContentPaste';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import './Planning.css';
+import { FaPlus } from 'react-icons/fa';
+import SaveIcon from '@mui/icons-material/Save';
+import EditIcon from '@mui/icons-material/Edit';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '@mui/material/styles';
+import { useSnackbar } from 'notistack';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import fr from 'date-fns/locale/fr';
+
+function Planning() {
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
+  const socket = useRef(null);
+  const socketInitialized = useRef(false);
+
+  // Jours traduits avec i18next
+  const jours = [
+    t('planning.days.monday', 'Lundi'), 
+    t('planning.days.tuesday', 'Mardi'), 
+    t('planning.days.wednesday', 'Mercredi'), 
+    t('planning.days.thursday', 'Jeudi'), 
+    t('planning.days.friday', 'Vendredi')
+  ];
+
+  // Définir un mapping entre les jours traduits et les jours en français
+  const jourMapping = {
+    // Français
+    'Lundi': 'Lundi',
+    'Mardi': 'Mardi',
+    'Mercredi': 'Mercredi',
+    'Jeudi': 'Jeudi',
+    'Vendredi': 'Vendredi',
+    // Anglais
+    'Monday': 'Lundi',
+    'Tuesday': 'Mardi',
+    'Wednesday': 'Mercredi',
+    'Thursday': 'Jeudi',
+    'Friday': 'Vendredi',
+    // Allemand
+    'Montag': 'Lundi',
+    'Dienstag': 'Mardi',
+    'Mittwoch': 'Mercredi',
+    'Donnerstag': 'Jeudi',
+    'Freitag': 'Vendredi'
+  };
+
+  const [planning, setPlanning] = useState([]);
+  const [surveillances, setSurveillances] = useState([]);
+  const [zeitslots, setZeitslots] = useState([]);
+  const [enseignants, setEnseignants] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
+  const [selectedTime, setSelectedTime] = useState(null);
+  const [customTime, setCustomTime] = useState('');
+  const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [formData, setFormData] = useState({
+    classe: '',
+    enseignants: [],
+    matiere: '',
+    salle: '',
+    jour: '',
+    uhr: '',
+    semaine: 1
+  });
+  const [error, setError] = useState('');
+  const [isAddTimeModalOpen, setIsAddTimeModalOpen] = useState(false);
+  const [newTimeSlot, setNewTimeSlot] = useState({
+    nummer: '',
+    zeitslot: ''
+  });
+  const [isAddSlotModalOpen, setIsAddSlotModalOpen] = useState(false);
+  const [selectedCell, setSelectedCell] = useState(null);
+  const [newSlot, setNewSlot] = useState({
+    enseignant: '',
+    matiere: '',
+    salle: '',
+    jour: '',
+    zeitslot: ''
+  });
+  const [isAddSurveillanceModalOpen, setIsAddSurveillanceModalOpen] = useState(false);
+  const [newSurveillance, setNewSurveillance] = useState({
+    enseignant: '',
+    lieu: '',
+    jour: '',
+    position: 0,
+    zeitslot: null
+  });
+  const [surveillanceList, setSurveillanceList] = useState([]);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [contextMenuSlot, setContextMenuSlot] = useState(null);
+  const [cours, setCours] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [matieres, setMatieres] = useState([]);
+  const [salles, setSalles] = useState([]);
+  const [uhrs, setUhrs] = useState([]);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [newCours, setNewCours] = useState({
+    classe: '',
+    enseignant: '',
+    matiere: '',
+    salle: '',
+    jour: '',
+    heure: '',
+    semaine: 1
+  });
+  const [semaine, setSemaine] = useState(1);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedCours, setSelectedCours] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSurveillanceModal, setShowSurveillanceModal] = useState(false);
+  const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);
+  const [showDeleteTimeSlotModal, setShowDeleteTimeSlotModal] = useState(false);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [showReplaceModal, setShowReplaceModal] = useState(false);
+  const [replacementData, setReplacementData] = useState({
+    enseignant: '',
+    enseignants: [],
+    matiere: '',
+    salle: ''
+  });
+  const [selectedClasse, setSelectedClasse] = useState('');
+  const [selectedEnseignant, setSelectedEnseignant] = useState('');
+  const [annotations, setAnnotations] = useState({});
+  const [editingAnnotation, setEditingAnnotation] = useState(null);
+  const [copiedWeekCourses, setCopiedWeekCourses] = useState(null);
+  const [copiedWeekData, setCopiedWeekData] = useState(null);
+  const [showPasteConfirmation, setShowPasteConfirmation] = useState(false);
+  const [modelWeeks, setModelWeeks] = useState([]);
+  const [showSaveModelDialog, setShowSaveModelDialog] = useState(false);
+  const [modelName, setModelName] = useState('');
+  const [showModelSelectionDialog, setShowModelSelectionDialog] = useState(false);
+  const [selectedModelWeek, setSelectedModelWeek] = useState(null);
+  const [selectedSurveillance, setSelectedSurveillance] = useState(null);
+  const [showAllSalles, setShowAllSalles] = useState(false);
+  const [showAllEnseignants, setShowAllEnseignants] = useState(false);
+
+  const heures = ['7:45 - 8:25', '8:25 - 9:05', '9:05 - 9:45', '9:45 - 10:25', '10:25 - 11:05', '11:05 - 11:45', '11:45 - 12:25'];
+
+  // Styles pour les en-têtes de tableau
+  const tableHeaderStyle = {
+    backgroundColor: '#1976d2',
+    color: 'white',
+    fontWeight: 'bold',
+    padding: '12px',
+    textAlign: 'center',
+    borderRadius: '8px 8px 0 0'
+  };
+
+  const currentDayStyle = {
+    fontWeight: 'bold',
+    backgroundColor: '#42a5f5',
+    color: 'white'
+  };
+
+  // Style pour les annotations
+  const annotationStyle = {
+    padding: '12px',
+    margin: '4px 0',
+    borderRadius: '6px',
+    backgroundColor: '#f8f9fa',
+    border: '1px solid #e9ecef',
+    transition: 'all 0.2s ease-in-out',
+    '&:hover': {
+      backgroundColor: '#e9ecef',
+      borderColor: '#dee2e6',
+      transform: 'translateY(-1px)',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+    }
+  };
+
+  // Style pour le champ de texte des annotations
+  const annotationTextFieldStyle = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '6px',
+      backgroundColor: '#fff',
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#1976d2'
+      },
+      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#1976d2',
+        borderWidth: '2px'
+      }
+    }
+  };
+
+  // Style pour le bouton de sauvegarde des annotations
+  const annotationSaveButtonStyle = {
+    backgroundColor: '#1976d2',
+    color: 'white',
+    borderRadius: '6px',
+    padding: '8px',
+    '&:hover': {
+      backgroundColor: '#1565c0',
+      transform: 'translateY(-1px)',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }
+  };
+
+  // Fonction pour déterminer si un jour est le jour actuel
+  const isCurrentDay = (index) => {
+    const currentDate = new Date();
+    const weekDates = getWeekDates();
+    const cellDate = new Date(currentWeek);
+    cellDate.setDate(cellDate.getDate() - cellDate.getDay() + 1 + index); // Lundi + index
+    return currentDate.toDateString() === cellDate.toDateString();
+  };
+
+  // Fonction pour obtenir le numéro de la semaine
+  const getWeekNumber = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+    const week1 = new Date(d.getFullYear(), 0, 4);
+    return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+  };
+
+  const getWeekDates = () => {
+    const dates = [];
+    const currentDate = new Date(currentWeek);
+    const startOfWeek = new Date(currentDate);
+    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay() + 1); // Lundi
+
+    for (let i = 0; i < 5; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      dates.push(date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }));
+    }
+    return dates;
+  };
+
+  // Effet pour mettre à jour les annotations lorsque la semaine change
+  useEffect(() => {
+    if (socket.current) {
+      // Créer une nouvelle date avec l'année et la semaine correctes
+      const date = new Date(currentWeek);
+      const weekNumber = getWeekNumber(date);
+      const year = date.getFullYear();
+      
+      // Envoyer les données au format attendu
+      const data = {
+        semaine: weekNumber,
+        annee: year
+      };
+      
+      socket.current.emit('getAnnotations', data);
+    }
+  }, [currentWeek]);
+
+  // Ajouter un intervalle pour mettre à jour l'heure actuelle
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Mise à jour toutes les minutes
+
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    socket.current = io('http://localhost:5000');
+
+    // Écouter les mises à jour du planning
+    socket.current.on('planningUpdate', (data) => {
+      if (data.surveillances) {
+        setSurveillances(data.surveillances);
+      }
+      if (data.zeitslots) {
+        setZeitslots(data.zeitslots);
+        setUhrs(data.zeitslots);
+      }
+      if (data.cours) {
+        setCours(data.cours);
+      }
+    });
+
+    // Écouter les mises à jour des heures
+    socket.current.on('uhrsUpdate', (data) => {
+      if (Array.isArray(data)) {
+        setUhrs(data);
+        setZeitslots(data);
+      } else {
+        console.error('Données d\'heures invalides:', data);
+        setUhrs([]);
+        setZeitslots([]);
+      }
+    });
+
+    // Écouter les mises à jour des enseignants
+    socket.current.on('enseignantsUpdate', (data) => {
+
+      if (Array.isArray(data)) {
+        setEnseignants(data);
+      }
+    });
+
+    // Écouter les mises à jour des classes
+    socket.current.on('classesUpdate', (data) => {
+
+      if (Array.isArray(data)) {
+        setClasses(data);
+      }
+    });
+
+    // Écouter les mises à jour des matières
+    socket.current.on('matieresUpdate', (data) => {
+
+      if (Array.isArray(data)) {
+        setMatieres(data);
+      }
+    });
+
+    // Écouter les mises à jour des salles
+    socket.current.on('sallesUpdate', (data) => {
+
+      if (Array.isArray(data)) {
+        setSalles(data);
+      }
+    });
+
+    // Écouter les mises à jour des cours
+    socket.current.on('coursUpdate', (data) => {
+      setCours(data);
+    });
+
+    // Demander les données initiales
+    socket.current.emit('getUhrs');
+    socket.current.emit('getEnseignants');
+    socket.current.emit('getClasses');
+    socket.current.emit('getMatieres');
+    socket.current.emit('getSalles');
+    socket.current.emit('getCours');
+    socket.current.emit('getAnnotations', {
+      semaine: getWeekNumber(currentWeek),
+      annee: currentWeek.getFullYear()
+    });
+
+    socket.current.on('annotationsUpdate', (data) => {
+      setAnnotations(data);
+    });
+
+    socket.current.on('surveillancesUpdate', (data) => {
+      setSurveillances(data);
+    });
+
+    return () => {
+      socket.current.disconnect();
+    };
+  }, []);
+
+  // Récupérer les semaines modèles stockées au chargement
+  useEffect(() => {
+    const savedModels = localStorage.getItem('planningModelWeeks');
+    if (savedModels) {
+      try {
+        setModelWeeks(JSON.parse(savedModels));
+      } catch (e) {
+        console.error('Erreur lors du chargement des modèles de semaine:', e);
+        localStorage.removeItem('planningModelWeeks');
+      }
+    }
+  }, []);
+
+  // Sauvegarder les modèles dans le localStorage quand ils changent
+  useEffect(() => {
+    if (modelWeeks.length > 0) {
+      localStorage.setItem('planningModelWeeks', JSON.stringify(modelWeeks));
+    }
+  }, [modelWeeks]);
+
+  const handleSlotClick = (slot) => {
+    setSelectedSlot(slot);
+    setFormData({
+      enseignant: slot.enseignant || '',
+      matiere: slot.matiere || '',
+      salle: slot.salle || '',
+      jour: slot.jour || '',
+      zeitslot: slot.uhr.zeitslot || '',
+      uhr: slot.uhr._id || '',
+      semaine: getWeekNumber(currentWeek)
+    });
+  };
+
+  const handleTimeClick = (zeitslot, jour) => {
+    const updatedSlot = {
+      ...zeitslot,
+      jour: jour
+    };
+    socket.emit('updateTimeSlot', updatedSlot);
+  };
+
+  const handleTimeChange = () => {
+    if (!selectedTime) return;
+
+    // Vérifier le format de l'heure (HH:MM - HH:MM)
+    const timeFormat = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9] - ([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeFormat.test(customTime)) {
+      setError('Format d\'heure invalide. Utilisez le format HH:MM - HH:MM');
+      return;
+    }
+
+    // Créer le slot mis à jour
+    const updatedSlot = {
+      uhr: selectedTime.zeitslot._id,
+      zeitslot: customTime
+    };
+
+    socket.current.emit('updateSlot', updatedSlot);
+    
+    // Fermer le modal et réinitialiser les états
+    setIsTimeModalOpen(false);
+    setCustomTime('');
+    setError('');
+    setSelectedTime(null);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (selectedSlot) {
+      socket.current.emit('updateSlot', {
+        ...formData,
+        id: selectedSlot.id
+      });
+      setSelectedSlot(null);
+    }
+  };
+
+  const handleDelete = () => {
+    if (selectedSlot) {
+      socket.current.emit('deleteSlot', selectedSlot.id);
+      setSelectedSlot(null);
+    }
+  };
+
+  const handleAddTimeSlot = (newTimeSlot) => {
+    socket.emit('addTimeSlot', newTimeSlot, (message) => {
+      if (message.success) {
+        setTimeSlots(prev => [...prev, newTimeSlot]);
+      }
+    });
+  };
+
+  const handleDeleteTimeSlot = (zeitslot) => {
+    socket.emit('deleteTimeSlot', zeitslot, (message) => {
+      if (message.success) {
+        setTimeSlots(prev => prev.filter(ts => ts._id !== zeitslot._id));
+      }
+    });
+  };
+
+  // Fonction pour naviguer entre les semaines
+  const navigateWeek = (direction) => {
+    const newDate = new Date(currentWeek);
+    newDate.setDate(newDate.getDate() + (direction * 7));
+    setCurrentWeek(newDate);
+  };
+
+  // Fonction pour vérifier si une cellule correspond à l'heure actuelle
+  const isCurrentTimeSlot = (zeitslot, jour) => {
+    const currentHour = currentTime.getHours();
+    const currentMinutes = currentTime.getMinutes();
+    const currentDay = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][currentTime.getDay()];
+    
+    // Vérifier si c'est le jour actuel
+    if (currentDay !== jour) return false;
+
+    // Extraire les heures de début et de fin du créneau horaire
+    const [startTime, endTime] = zeitslot.zeitslot.split(' - ');
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+
+    // Convertir en minutes pour faciliter la comparaison
+    const currentTimeInMinutes = currentHour * 60 + currentMinutes;
+    const startTimeInMinutes = startHour * 60 + startMinute;
+    const endTimeInMinutes = endHour * 60 + endMinute;
+
+    return currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes <= endTimeInMinutes;
+  };
+
+  const handleCellClick = (jour, uhrId, isSurveillance = false, position = -1) => {
+    if (isSurveillance) {
+      setSelectedCell({ jour, uhrId, isSurveillance, position });
+      setNewSurveillance({
+        enseignant: '',
+        lieu: '',
+        jour: jour,
+        position: position,
+        zeitslot: uhrs[0]
+      });
+      setShowSurveillanceModal(true);
+    } else {
+      const selectedUhr = uhrs.find(u => u._id === uhrId);
+      if (!selectedUhr) {
+        console.error('Créneau horaire non trouvé:', uhrId);
+        enqueueSnackbar('Erreur: Créneau horaire non trouvé', { variant: 'error' });
+        return;
+      }
+      
+      setSelectedCell({ jour, uhrId });
+      setFormData({
+        classe: '',
+        enseignants: [],
+        matiere: '',
+        salle: '',
+        jour: jour,
+        uhr: uhrId,
+        semaine: getWeekNumber(currentWeek)
+      });
+      setError('');
+      setIsAddSlotModalOpen(true);
+    }
+  };
+
+  const handleAddSlot = () => {
+    if (!newSlot.enseignant || !newSlot.matiere || !newSlot.salle) {
+      setError('Veuillez remplir tous les champs');
+      return;
+    }
+
+    // Obtenir le numéro de semaine actuel
+    const currentWeekNumber = getWeekNumber(currentWeek);
+
+    // Créer le nouveau slot avec toutes les informations nécessaires
+    const slotData = {
+      ...newSlot,
+      semaine: currentWeekNumber
+    };
+
+    
+    // Ajouter un gestionnaire d'événements pour le succès
+    socket.current.once('success', (message) => {
+      enqueueSnackbar(t('planning.courseAdded', 'Cours ajouté avec succès'), { variant: 'success' });
+      setIsAddSlotModalOpen(false);
+      setNewSlot({
+        enseignant: '',
+        matiere: '',
+        salle: '',
+        jour: '',
+        zeitslot: ''
+      });
+      setError('');
+    });
+
+    // Ajouter un gestionnaire d'événements pour l'erreur
+    socket.current.once('error', (errorMessage) => {
+      console.error('Erreur lors de l\'ajout du cours:', errorMessage);
+      setError(errorMessage || 'Erreur lors de l\'ajout du cours');
+      enqueueSnackbar(t('planning.courseAddError', 'Erreur lors de l\'ajout du cours'), { variant: 'error' });
+    });
+
+    if (selectedCell.slot) {
+      // Si on modifie un cours existant
+      socket.current.emit('updateSlot', {
+        ...slotData,
+        id: selectedCell.slot._id
+      });
+    } else {
+      // Si on ajoute un nouveau cours
+      socket.current.emit('addSlot', slotData);
+    }
+  };
+
+  const handleAddSurveillance = (newSurveillance) => {
+    const currentYear = new Date().getFullYear();
+    const surveillanceData = {
+      ...newSurveillance,
+      annee: currentYear
+    };
+    socket.emit('addSurveillance', surveillanceData);
+  };
+
+  const handleDeleteSurveillance = (surveillance) => {
+    if (window.confirm(t('planning.surveillance.confirmDelete'))) {
+      socket.current.emit('deleteSurveillance', surveillance._id);
+    }
+  };
+
+  const handleRemoveSurveillance = (index) => {
+    const newList = surveillanceList.filter((_, i) => i !== index);
+    setSurveillanceList(newList);
+  };
+
+  const handleSaveSurveillances = () => {
+    if (surveillanceList.length === 0) {
+      setError('Veuillez ajouter au moins une surveillance');
+      return;
+    }
+
+    // Obtenir le numéro de semaine actuel
+    const currentWeekNumber = getWeekNumber(currentWeek);
+
+    // Vérifier si on est dans une ligne de surveillance
+    const isSurveillanceRow = selectedCell?.isSurveillance;
+    if (!isSurveillanceRow) {
+      setError('Les surveillances ne peuvent être ajoutées que dans les lignes de surveillance');
+      return;
+    }
+
+    // Trouver toutes les surveillances existantes pour ce créneau
+    const existingSurveillances = surveillances.filter(s => 
+      s.jour === newSurveillance.jour && 
+      s.uhr && 
+      s.uhr._id === newSurveillance.zeitslot && 
+      s.semaine === currentWeekNumber &&
+      s.type === 'entre_creneaux' &&
+      s.position === selectedCell.position
+    );
+
+    // Supprimer toutes les surveillances existantes de la même position
+    existingSurveillances.forEach(surveillance => {
+      socket.current.emit('deleteSurveillance', surveillance._id);
+    });
+
+    // Ajouter chaque surveillance de la liste
+    surveillanceList.forEach(surveillance => {
+      const surveillanceData = {
+        surveillant: surveillance.surveillant,
+        lieu: surveillance.lieu,
+        jour: newSurveillance.jour,
+        zeitslot: newSurveillance.zeitslot,
+        semaine: currentWeekNumber,
+        type: 'entre_creneaux',
+        duree: 1,
+        position: selectedCell.position
+      };
+
+      socket.current.emit('addSurveillance', surveillanceData);
+    });
+
+    // Réinitialiser le modal
+    setIsAddSurveillanceModalOpen(false);
+    setSurveillanceList([]);
+    setNewSurveillance({
+      surveillant: '',
+      lieu: '',
+      jour: '',
+      zeitslot: ''
+    });
+    setError('');
+  };
+
+  const handleContextMenu = (event, slot, jour, zeitslot, isSurveillance = false) => {
+    event.preventDefault();
+    setContextMenuSlot({ slot, jour, zeitslot, isSurveillance });
+    setContextMenu({
+      x: event.clientX,
+      y: event.clientY
+    });
+  };
+
+  const handleCloseContextMenu = () => {
+    setContextMenu(null);
+    setContextMenuSlot(null);
+  };
+
+  const handleDeleteFromContextMenu = () => {
+    if (contextMenuSlot) {
+      if (contextMenuSlot.isSurveillance) {
+        socket.current.emit('deleteSurveillance', contextMenuSlot.slot._id);
+      } else {
+        socket.current.emit('deleteSlot', contextMenuSlot.slot._id);
+      }
+      handleCloseContextMenu();
+    }
+  };
+
+  // Fonction pour convertir l'heure au format de la base de données
+  const convertHeureToDBFormat = (heure) => {
+    // Si l'heure est déjà au format "8h", on la retourne telle quelle
+    if (heure.endsWith('h')) {
+      return heure;
+    }
+    // Sinon, on extrait l'heure de début du format "8h-9h"
+    return heure.split('-')[0];
+  };
+
+  const handleDragEnd = (result) => {
+
+    const { source, destination, draggableId } = result;
+    
+    // Vérifier si c'est une surveillance ou un cours
+    const isSurveillance = surveillances.some(s => s._id === draggableId);
+    
+    if (isSurveillance) {
+      // Gestion des surveillances
+      const surveillance = surveillances.find(s => s._id === draggableId);
+      if (!surveillance) return;
+
+      const sourceDay = source.droppableId.split('-')[0];
+      const destinationDay = destination.droppableId.split('-')[0];
+      
+      let newPosition = -1;
+      if (destination.droppableId.includes('before')) {
+        newPosition = -1;
+      } else {
+        newPosition = parseInt(destination.droppableId.split('-')[1]) || 0;
+      }
+
+      const updatedSurveillance = {
+        ...surveillance,
+        jour: destinationDay,
+        uhr: uhrs.find(u => u._id === destination.droppableId.split('-')[2])?._id,
+        position: newPosition,
+        before: newPosition === -1 ? true : false
+      };
+
+      socket.current.emit('updateSurveillance', updatedSurveillance);
+    } else {
+      // Gestion des cours
+      const coursToMove = cours.find(c => c._id === draggableId);
+
+
+      const [sourceDay, sourceUhrId] = source.droppableId.split('-');
+      const [destinationDay, destinationUhrId] = destination.droppableId.split('-');
+
+      const destinationUhr = uhrs.find(u => u._id === destinationUhrId);
+
+      // S'assurer que les IDs des enseignants sont présents
+      const updatedCours = {
+        ...coursToMove,
+        jour: destinationDay,
+        heure: `${destinationUhr.start} - ${destinationUhr.ende}`,
+        uhr: destinationUhrId,
+        enseignantsIds: coursToMove.enseignants?.map(enseignant => {
+          const enseignantObj = enseignants.find(e => e.nom === enseignant);
+          return enseignantObj ? enseignantObj._id : null;
+        })
+      };
+
+      socket.current.emit('updateCours', updatedCours);
+    }
+  };
+
+  const handleOpenAddModal = () => {
+    setFormData({
+      classe: '',
+      enseignants: [],
+      matiere: '',
+      salle: '',
+      jour: '',
+      uhr: '',
+      semaine: 1
+    });
+    setError('');
+    setIsAddModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsAddModalOpen(false);
+    setError('');
+  };
+
+  // Fonction pour convertir le jour traduit vers le format français pour la base de données
+  const convertToFrenchDay = (translatedDay) => {
+    return jourMapping[translatedDay] || 'Lundi'; // Par défaut, retourne Lundi si non trouvé
+  };
+
+  const handleSubmitModal = () => {
+    if (!formData.classe || !formData.enseignants || formData.enseignants.length === 0 || !formData.matiere || !formData.salle || !formData.jour || !formData.uhr) {
+      setError('Tous les champs sont requis');
+      return;
+    }
+
+    const uhr = uhrs.find(u => u._id === formData.uhr);
+    if (!uhr) {
+      setError('Créneau horaire non trouvé');
+      return;
+    }
+
+    // S'assurer que la liste des enseignants n'est jamais vide
+    const enseignantsList = formData.enseignants.length > 0 ? formData.enseignants : ['Non assigné'];
+
+    // Convertir le jour traduit en jour français pour la base de données
+    const frenchDay = convertToFrenchDay(formData.jour);
+
+    const coursData = {
+      classe: formData.classe,
+      enseignants: enseignantsList,
+      enseignantsIds: enseignantsList.map(enseignant => {
+        const enseignantObj = enseignants.find(e => e.nom === enseignant);
+        return enseignantObj ? enseignantObj._id : null;
+      }),
+      matiere: formData.matiere,
+      salle: formData.salle,
+      jour: frenchDay,
+      heure: `${uhr.start} - ${uhr.ende}`,
+      uhr: formData.uhr,
+      semaine: getWeekNumber(currentWeek),
+      annee: currentWeek.getFullYear()
+    };
+
+    
+    // Ajouter des gestionnaires d'événements pour le succès et l'erreur
+    socket.current.once('success', (message) => {
+      enqueueSnackbar(t('planning.courseAdded', 'Cours ajouté avec succès'), { variant: 'success' });
+      setIsAddSlotModalOpen(false);
+      setFormData({
+        classe: '',
+        enseignants: [],
+        matiere: '',
+        salle: '',
+        jour: '',
+        uhr: '',
+        semaine: 1
+      });
+      setError('');
+    });
+
+    socket.current.once('error', (errorMessage) => {
+      console.error('Erreur lors de l\'ajout du cours:', errorMessage);
+      setError(errorMessage || 'Erreur lors de l\'ajout du cours');
+      enqueueSnackbar(t('planning.courseAddError', 'Erreur lors de l\'ajout du cours'), { variant: 'error' });
+    });
+
+    socket.current.emit('addCours', coursData);
+  };
+
+  // Fonction de filtrage des cours
+  const getFilteredCours = () => {
+
+    return cours.filter(cours => {
+      const matchClasse = !selectedClasse || cours.classe === selectedClasse;
+      const enseignantMatch = !selectedEnseignant || cours.enseignants?.some(e => e.id === selectedEnseignant);
+      
+      return matchClasse && enseignantMatch;
+    });
+  };
+
+  // Fonction pour convertir le jour français vers le jour traduit dans l'interface
+  const convertFromFrenchDay = (frenchDay) => {
+    // Obtenir la langue actuelle 
+    const currentLanguage = i18n.language || 'fr';
+    
+    // Utiliser des clés de traduction directes pour garantir les bonnes traductions
+    if (frenchDay === 'Lundi') return t('planning.days.monday');
+    if (frenchDay === 'Mardi') return t('planning.days.tuesday');
+    if (frenchDay === 'Mercredi') return t('planning.days.wednesday');
+    if (frenchDay === 'Jeudi') return t('planning.days.thursday');
+    if (frenchDay === 'Vendredi') return t('planning.days.friday');
+    
+    // Par défaut, retourne le jour en français
+    return frenchDay;
+  };
+
+  // Modification de la fonction getCoursForCell pour utiliser les bonnes propriétés d'heure
+  const getCoursForCell = (jour, uhrId) => {
+    const filteredCours = getFilteredCours();
+    const uhr = uhrs.find(u => u._id === uhrId);
+    
+    // Convertir le jour affiché en jour français pour la comparaison
+    const frenchDay = convertToFrenchDay(jour);
+    
+    return filteredCours.filter(cours => 
+      // Le jour dans la base de données est en français, on compare avec frenchDay
+      cours.jour === frenchDay && 
+      cours.uhr === uhrId && 
+      cours.semaine === getWeekNumber(currentWeek) &&
+      cours.annee === currentWeek.getFullYear()
+    );
+  };
+
+  const handleDeleteCours = (cours) => {
+    setSelectedCours(cours);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = (action) => {
+    if (!selectedCours) return;
+
+    switch (action) {
+      case 'delete':
+        socket.current.emit('deleteCours', selectedCours._id);
+        break;
+      case 'cancel':
+        socket.current.emit('updateCours', {
+          _id: selectedCours._id,
+          annule: true,
+          remplace: false,
+          enseignantsIds: selectedCours.enseignants?.map(enseignant => {
+            const enseignantObj = enseignants.find(e => e.nom === enseignant);
+            return enseignantObj ? enseignantObj._id : null;
+          })
+        });
+        break;
+      case 'replace':
+        const currentEnseignants = Array.isArray(selectedCours.enseignants) 
+          ? selectedCours.enseignants 
+          : selectedCours.enseignants ? [selectedCours.enseignants] : [];
+          
+        setReplacementData({
+          enseignants: currentEnseignants,
+          matiere: selectedCours.matiere,
+          salle: selectedCours.salle
+        });
+        setShowReplaceModal(true);
+        return;
+    }
+
+    setShowDeleteModal(false);
+    setSelectedCours(null);
+  };
+
+  const handleReplaceCancel = () => {
+    setShowReplaceModal(false);
+    setReplacementData({
+      enseignant: '',
+      enseignants: [],
+      matiere: '',
+      salle: ''
+    });
+  };
+
+  const handleReplaceSubmit = () => {
+    if (selectedCours) {
+      const remplacementInfo = [];
+      
+      // Gestion des enseignants comme un tableau
+      const currentEnseignants = Array.isArray(selectedCours.enseignants) 
+        ? selectedCours.enseignants.join(', ') 
+        : (selectedCours.enseignants || 'Non assigné');
+        
+      if (replacementData.enseignants.length > 0 && replacementData.enseignants.join(', ') !== currentEnseignants) {
+        remplacementInfo.push(`Enseignant: ${currentEnseignants} → ${replacementData.enseignants.join(', ')}`);
+      }
+      
+      if (replacementData.matiere !== selectedCours.matiere) {
+        const oldMatiere = selectedCours.matiere || 'Non assignée';
+        remplacementInfo.push(`Matière: ${oldMatiere} → ${replacementData.matiere}`);
+      }
+      
+      if (replacementData.salle !== selectedCours.salle) {
+        const oldSalle = selectedCours.salle || 'Non assignée';
+        remplacementInfo.push(`Salle: ${oldSalle} → ${replacementData.salle}`);
+      }
+
+      if (remplacementInfo.length === 0) {
+        setError('Aucune modification n\'a été effectuée');
+        return;
+      }
+
+      // Préparation des données mises à jour
+      const updatedData = {
+        _id: selectedCours._id,
+        remplace: true,
+        annule: false,
+        remplacementInfo: remplacementInfo.join(', '),
+        enseignantsIds: replacementData.enseignants.map(enseignant => {
+          const enseignantObj = enseignants.find(e => e.nom === enseignant);
+          return enseignantObj ? enseignantObj._id : null;
+        })
+      };
+      
+      // Si l'enseignant est modifié, mettre à jour les enseignants et leurs IDs
+      if (replacementData.enseignants.length > 0 && replacementData.enseignants.join(', ') !== currentEnseignants) {
+        updatedData.enseignants = replacementData.enseignants;
+      }
+      
+      // Ajouter les autres champs modifiés
+      if (replacementData.matiere !== selectedCours.matiere) {
+        updatedData.matiere = replacementData.matiere;
+      }
+      
+      if (replacementData.salle !== selectedCours.salle) {
+        updatedData.salle = replacementData.salle;
+      }
+
+      // Envoyer la mise à jour
+      socket.current.emit('updateCours', updatedData);
+      handleReplaceCancel();
+    }
+  };
+
+  const handleAnnotationChange = (jour, value) => {
+    const frenchDay = convertToFrenchDay(jour);
+    setAnnotations(prev => ({
+      ...prev,
+      [frenchDay]: value
+    }));
+  };
+
+  const handleAnnotationSave = (jour) => {
+    const frenchDay = convertToFrenchDay(jour);
+    if (socket.current) {
+      socket.current.emit('saveAnnotation', {
+        jour: frenchDay,
+        annotation: annotations[frenchDay],
+        semaine: getWeekNumber(currentWeek),
+        date: currentWeek
+      });
+      setEditingAnnotation(null);
+
+      // Attendre un court délai pour s'assurer que la sauvegarde est terminée
+      setTimeout(() => {
+        socket.current.emit('getAnnotations', {
+          semaine: getWeekNumber(currentWeek),
+          annee: currentWeek.getFullYear()
+        });
+      }, 500);
+    }
+  };
+
+  // Fonction pour copier une semaine de planning
+  const handleCopyWeek = () => {
+    const weekNumber = getWeekNumber(currentWeek);
+    const year = currentWeek.getFullYear();
+    
+    // Filtrer les cours de la semaine actuelle
+    const currentWeekCourses = cours.filter(cours => 
+      cours.semaine === weekNumber && 
+      cours.annee === year
+    );
+    
+    if (currentWeekCourses.length === 0) {
+      enqueueSnackbar(t('planning.noCourseInWeek', 'Aucun cours dans cette semaine à copier'), { variant: 'warning' });
+      return;
+    }
+    
+    // Stocker les cours et les informations de la semaine
+    setCopiedWeekCourses(currentWeekCourses);
+    setCopiedWeekData({
+      sourceWeek: weekNumber,
+      sourceYear: year,
+      timestamp: new Date().toISOString()
+    });
+    
+    enqueueSnackbar(t('planning.weekCopied', 'Semaine copiée avec succès'), { variant: 'success' });
+  };
+
+  // Fonction pour ouvrir le modal de confirmation de collage
+  const handlePasteWeekConfirm = () => {
+    if (!copiedWeekCourses || copiedWeekCourses.length === 0) {
+      enqueueSnackbar(t('planning.noWeekCopied', 'Aucune semaine n\'a été copiée'), { variant: 'error' });
+      return;
+    }
+    
+    setShowPasteConfirmation(true);
+  };
+
+  // Fonction pour coller une semaine de planning
+  const handlePasteWeek = () => {
+    const targetWeekNumber = getWeekNumber(currentWeek);
+    const targetYear = currentWeek.getFullYear();
+    
+    // Vérifier si on essaie de coller dans la même semaine
+    if (copiedWeekData.sourceWeek === targetWeekNumber && copiedWeekData.sourceYear === targetYear) {
+      enqueueSnackbar(t('planning.cannotPasteSameWeek', 'Impossible de coller dans la même semaine'), { variant: 'error' });
+      setShowPasteConfirmation(false);
+      return;
+    }
+    
+    // Préparer les nouveaux cours à créer
+    const newCourses = copiedWeekCourses.map(oldCours => {
+      // Créer une copie sans l'ID et les timestamps pour un nouveau document
+      const { _id, createdAt, updatedAt, __v, ...newCours } = oldCours;
+      
+      // Mettre à jour la semaine et l'année
+      newCours.semaine = targetWeekNumber;
+      newCours.annee = targetYear;
+      
+      return newCours;
+    });
+    
+    // Envoyer la demande de copie au serveur
+    socket.current.emit('pasteWeek', {
+      courses: newCourses,
+      targetWeek: targetWeekNumber,
+      targetYear: targetYear,
+      sourceWeek: copiedWeekData.sourceWeek,
+      sourceYear: copiedWeekData.sourceYear
+    });
+    
+    // Écouter la réponse du serveur
+    socket.current.once('pasteWeekSuccess', (response) => {
+      enqueueSnackbar(t('planning.weekPasted', 'Semaine collée avec succès'), { variant: 'success' });
+      // Actualiser les cours après le collage
+      socket.current.emit('getCours');
+    });
+    
+    socket.current.once('pasteWeekError', (error) => {
+      enqueueSnackbar(error || t('planning.weekPasteError', 'Erreur lors du collage de la semaine'), { variant: 'error' });
+    });
+    
+    setShowPasteConfirmation(false);
+  };
+
+  // Fonction pour ouvrir le dialogue de sauvegarde du modèle
+  const handleSaveAsModel = () => {
+    const weekNumber = getWeekNumber(currentWeek);
+    const year = currentWeek.getFullYear();
+    
+    // Vérifier si des cours existent pour cette semaine
+    const currentWeekCourses = cours.filter(cours => 
+      cours.semaine === weekNumber && 
+      cours.annee === year
+    );
+    
+    if (currentWeekCourses.length === 0) {
+      enqueueSnackbar(t('planning.noCourseInWeek', 'Aucun cours dans cette semaine à enregistrer comme modèle'), { variant: 'warning' });
+      return;
+    }
+    
+    setModelName(`Semaine ${weekNumber} - ${year}`);
+    setShowSaveModelDialog(true);
+  };
+
+  // Fonction pour sauvegarder la semaine comme modèle
+  const handleSaveModelConfirm = () => {
+    if (!modelName.trim()) {
+      enqueueSnackbar(t('planning.modelNameRequired', 'Un nom est requis pour le modèle'), { variant: 'error' });
+      return;
+    }
+    
+    const weekNumber = getWeekNumber(currentWeek);
+    const year = currentWeek.getFullYear();
+    
+    // Vérifier si des cours existent pour cette semaine
+    const currentWeekCourses = cours.filter(cours => 
+      cours.semaine === weekNumber && 
+      cours.annee === year
+    );
+    
+    // Créer le nouveau modèle
+    const newModel = {
+      id: Date.now().toString(),
+      name: modelName,
+      sourceWeek: weekNumber,
+      sourceYear: year,
+      courses: currentWeekCourses,
+      createdAt: new Date().toISOString()
+    };
+    
+    // Vérifier si un modèle avec le même nom existe déjà et le remplacer
+    const existingModelIndex = modelWeeks.findIndex(model => model.name === modelName);
+    
+    if (existingModelIndex !== -1) {
+      const updatedModels = [...modelWeeks];
+      updatedModels[existingModelIndex] = newModel;
+      setModelWeeks(updatedModels);
+    } else {
+      setModelWeeks([...modelWeeks, newModel]);
+    }
+    
+    setShowSaveModelDialog(false);
+    enqueueSnackbar(t('planning.modelSaved', 'Semaine enregistrée comme modèle'), { variant: 'success' });
+  };
+
+  // Fonction pour ouvrir le dialogue de sélection de modèle
+  const handleOpenModelSelection = () => {
+    if (modelWeeks.length === 0) {
+      enqueueSnackbar(t('planning.noModelSaved', 'Aucun modèle de semaine n\'est enregistré'), { variant: 'info' });
+      return;
+    }
+    
+    setSelectedModelWeek(null);
+    setShowModelSelectionDialog(true);
+  };
+
+  // Fonction pour appliquer un modèle de semaine
+  const handleApplyModel = () => {
+    if (!selectedModelWeek) {
+      enqueueSnackbar(t('planning.noModelSelected', 'Aucun modèle sélectionné'), { variant: 'error' });
+      return;
+    }
+    
+    const targetWeekNumber = getWeekNumber(currentWeek);
+    const targetYear = currentWeek.getFullYear();
+    
+    // Vérifier si on essaie d'appliquer le modèle à la même semaine que la source
+    if (selectedModelWeek.sourceWeek === targetWeekNumber && selectedModelWeek.sourceYear === targetYear) {
+      enqueueSnackbar(t('planning.cannotApplySameWeek', 'Impossible d\'appliquer le modèle à la semaine source'), { variant: 'error' });
+      setShowModelSelectionDialog(false);
+      return;
+    }
+    
+    // Préparer les nouveaux cours à créer
+    const newCourses = selectedModelWeek.courses.map(oldCours => {
+      // Créer une copie sans l'ID et les timestamps pour un nouveau document
+      const { _id, createdAt, updatedAt, __v, ...newCours } = oldCours;
+      
+      // Mettre à jour la semaine et l'année
+      newCours.semaine = targetWeekNumber;
+      newCours.annee = targetYear;
+      
+      return newCours;
+    });
+    
+    // Envoyer la demande d'application de modèle au serveur
+    socket.current.emit('pasteWeek', {
+      courses: newCourses,
+      targetWeek: targetWeekNumber,
+      targetYear: targetYear,
+      sourceWeek: selectedModelWeek.sourceWeek,
+      sourceYear: selectedModelWeek.sourceYear
+    });
+    
+    // Écouter la réponse du serveur
+    socket.current.once('pasteWeekSuccess', (response) => {
+      enqueueSnackbar(t('planning.modelApplied', 'Modèle appliqué avec succès'), { variant: 'success' });
+      // Actualiser les cours après l'application
+      socket.current.emit('getCours');
+    });
+    
+    socket.current.once('pasteWeekError', (error) => {
+      enqueueSnackbar(error || t('planning.modelApplyError', 'Erreur lors de l\'application du modèle'), { variant: 'error' });
+    });
+    
+    setShowModelSelectionDialog(false);
+  };
+
+  // Fonction pour supprimer un modèle de semaine
+  const handleDeleteModel = (modelId) => {
+    const updatedModels = modelWeeks.filter(model => model.id !== modelId);
+    setModelWeeks(updatedModels);
+    
+    // Si le localStorage est vide, supprimer complètement la clé
+    if (updatedModels.length === 0) {
+      localStorage.removeItem('planningModelWeeks');
+    }
+    
+    enqueueSnackbar(t('planning.modelDeleted', 'Modèle supprimé'), { variant: 'success' });
+  };
+
+  // Fonction pour obtenir les surveillances pour une cellule spécifique
+  const getSurveillancesForCell = (jour, uhrId) => {
+    return surveillances.filter(s => {
+      const surveillanceDay = s.jour.split('-')[0];
+      return surveillanceDay === jour && 
+             s.uhr === uhrId &&
+             s.semaine === getWeekNumber(currentWeek) &&
+             s.annee === currentWeek.getFullYear();
+    }).sort((a, b) => a.ordre - b.ordre);
+  };
+
+  // Fonction pour obtenir les salles disponibles pour un créneau horaire
+  const getSallesDisponibles = (jour, uhrId) => {
+    // Si showAllSalles est true, retourner toutes les salles
+    if (showAllSalles) {
+      return salles;
+    }
+
+    // Obtenir tous les cours pour ce créneau
+    const coursDuCreneau = cours.filter(c => 
+      c.jour === convertToFrenchDay(jour) && 
+      c.uhr === uhrId &&
+      c.semaine === getWeekNumber(currentWeek) &&
+      c.annee === currentWeek.getFullYear() &&
+      !c.annule // Exclure les cours annulés
+    );
+    
+    // Extraire les salles déjà utilisées
+    const sallesUtilisees = coursDuCreneau.map(c => c.salle).filter(Boolean);
+    
+    // Retourner les salles qui ne sont pas utilisées
+    return salles.filter(s => !sallesUtilisees.includes(s.nom));
+  };
+
+  // Fonction pour obtenir les enseignants disponibles pour un créneau horaire
+  const getEnseignantsDisponibles = (jour, uhrId) => {
+    if (showAllEnseignants) {
+      return enseignants;
+    }
+
+    const coursDuCreneau = cours.filter(c => 
+      c.jour === convertToFrenchDay(jour) && 
+      c.uhr === uhrId &&
+      c.semaine === getWeekNumber(currentWeek) &&
+      c.annee === currentWeek.getFullYear() &&
+      !c.annule // Exclure les cours annulés
+    );
+    
+    const enseignantsOccupesIds = coursDuCreneau.reduce((acc, c) => {
+      if (c.enseignants) {
+        // Extraire les IDs des enseignants du cours
+        const ids = c.enseignants.map(e => e.id);
+        acc.push(...ids);
+      }
+      return acc;
+    }, []);
+    
+    return enseignants.filter(e => !enseignantsOccupesIds.includes(e._id));
+  };
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Typography 
+        variant="h4" 
+        sx={{ 
+          color: 'primary.main',
+          fontWeight: 'bold',
+          mb: 3
+        }}
+      >
+        {t('planning.title')}
+      </Typography>
+
+      <Box sx={{ 
+        display: 'flex', 
+        gap: 2, 
+        alignItems: 'center',
+        mb: 3
+      }}>
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>{t('planning.class')}</InputLabel>
+          <Select
+            value={selectedClasse}
+            onChange={(e) => setSelectedClasse(e.target.value)}
+            label={t('planning.class')}
+          >
+            <MenuItem value="">{t('planning.all')}</MenuItem>
+            {classes.map((classe) => (
+              <MenuItem key={classe._id} value={classe.nom}>
+                {classe.nom}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl sx={{ minWidth: 200 }}>
+          <InputLabel>{t('planning.teacher')}</InputLabel>
+          <Select
+            value={selectedEnseignant}
+            onChange={(e) => setSelectedEnseignant(e.target.value)}
+            label={t('planning.teacher')}
+          >
+            <MenuItem value="">{t('planning.all')}</MenuItem>
+            {enseignants.map((enseignant) => (
+              <MenuItem key={enseignant._id} value={enseignant._id}>
+                {enseignant.nom}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <Box sx={{ ml: 2, display: 'flex', gap: 1 }}>
+          <Tooltip title={t('planning.copyWeek', 'Copier cette semaine')}>
+            <Button
+              startIcon={<ContentCopyIcon />}
+              variant="outlined"
+              onClick={handleCopyWeek}
+              size="small"
+            >
+              {t('planning.copy', 'Copier')}
+            </Button>
+          </Tooltip>
+          
+          <Tooltip title={copiedWeekCourses ? t('planning.pasteWeek', 'Coller la semaine copiée ici') : t('planning.noCopyAvailable', 'Aucune semaine copiée')}>
+            <span>
+              <Button
+                startIcon={<ContentPasteIcon />}
+                variant="outlined"
+                onClick={handlePasteWeekConfirm}
+                disabled={!copiedWeekCourses}
+                size="small"
+                color="secondary"
+              >
+                {t('planning.paste', 'Coller')}
+              </Button>
+            </span>
+          </Tooltip>
+
+          <Tooltip title={t('planning.saveAsModel', 'Enregistrer comme modèle')}>
+            <Button
+              startIcon={<StarIcon />}
+              variant="outlined"
+              onClick={handleSaveAsModel}
+              size="small"
+              color="warning"
+            >
+              {t('planning.saveModel', 'Modèle')}
+            </Button>
+          </Tooltip>
+          
+          <Tooltip title={t('planning.applyModel', 'Appliquer un modèle')}>
+            <Button
+              startIcon={<StarBorderIcon />}
+              variant="outlined"
+              onClick={handleOpenModelSelection}
+              size="small"
+              color="warning"
+            >
+              {t('planning.applyModel', 'Appliquer')}
+            </Button>
+          </Tooltip>
+        </Box>
+
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          gap: 1,
+          ml: 'auto'
+        }}>
+          <IconButton onClick={() => navigateWeek(-1)} size="small">
+            <ArrowBackIosIcon />
+          </IconButton>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Typography variant="h6" sx={{ color: 'primary.main' }}>
+              {currentWeek.toLocaleDateString('fr-FR', { year: 'numeric' })}
+            </Typography>
+            <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+              {t('planning.week')} {getWeekNumber(currentWeek)}
+            </Typography>
+          </Box>
+          <IconButton onClick={() => navigateWeek(1)} size="small">
+            <ArrowForwardIosIcon />
+          </IconButton>
+        </Box>
+      </Box>
+
+      <DragDropContext
+        onDragEnd={handleDragEnd}
+      >
+        <TableContainer 
+          component={Paper} 
+          sx={{ 
+            width: '100%',
+            height: 'auto',
+            maxHeight: '100%',
+            overflow: 'visible'
+          }}
+        >
+          <Table stickyHeader aria-label="planning table">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ width: '100px' }}>{t('planning.time')}</TableCell>
+                {jours.map((jour, index) => {
+                  const weekDates = getWeekDates();
+                  return (
+                    <TableCell 
+                      key={jour} 
+                      align="center"
+                      sx={{
+                        backgroundColor: '#1976d2 !important',
+                        color: 'white !important',
+                        fontWeight: 'bold !important',
+                        padding: '12px !important',
+                        textAlign: 'center !important',
+                        borderRadius: '8px 8px 0 0 !important',
+                        width: '150px', // Largeur fixe pour les colonnes de jour
+                        minWidth: '150px',
+                        maxWidth: '150px',
+                        ...(isCurrentDay(index) ? {
+                          backgroundColor: '#42a5f5 !important',
+                          color: 'white !important',
+                          fontWeight: 'bold !important'
+                        } : {})
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 'medium', color: 'white' }}>
+                          {jour}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'white', opacity: 0.9, mt: 0.5 }}>
+                          {weekDates[index]}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {/* Ligne de surveillance avant la première heure */}
+              <TableRow sx={{ 
+                '& td': {
+                  borderBottom: '3px solid #90caf9',
+                  backgroundColor: '#e3f2fd',
+                  height: '40px'
+                }
+              }}>
+                <TableCell 
+                  sx={{ 
+                    width: '90px',
+                    position: 'relative',
+                    backgroundColor: '#e3f2fd',
+                    borderRight: '1px solid #90caf9',
+                    padding: '8px'
+                  }}
+                >
+                  <Box sx={{ 
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    color: '#1976d2',
+                    fontWeight: 'bold'
+                  }}>
+                    Surveillance
+                  </Box>
+                </TableCell>
+                {jours.map((jour) => {
+                  const daySurveillances = surveillances.filter(s => {
+                    const surveillanceDay = s.jour.split('-')[0];
+                    return surveillanceDay === jour && 
+                           s.position === -1 &&
+                           s.semaine === getWeekNumber(currentWeek) &&
+                           s.annee === currentWeek.getFullYear();
+                  }).sort((a, b) => a.ordre - b.ordre);
+
+                  return (
+                    <TableCell 
+                      key={`${jour}-before`}
+                      sx={{ 
+                        height: '50px', 
+                        cursor: 'pointer',
+                        verticalAlign: 'middle',
+                        padding: '8px',
+                        '&:hover': {
+                          bgcolor: '#e9ecef'
+                        }
+                      }}
+                      onClick={() => handleCellClick(jour, uhrs[0]?._id, true, -1)}
+                    >
+                      <Droppable droppableId={`${jour}-before`} direction="vertical">
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            style={{ height: '100%' }}
+                          >
+                            {daySurveillances.map((surveillance, index) => (
+                              <Draggable
+                                key={surveillance._id}
+                                draggableId={surveillance._id}
+                                index={index}
+                              >
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    className={`surveillance-cell ${snapshot.isDragging ? 'dragging' : ''}`}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedSurveillance(surveillance);
+                                      setNewSurveillance({
+                                        enseignant: surveillance.enseignant,
+                                        lieu: surveillance.lieu,
+                                        jour: jour,
+                                        position: -1,
+                                        zeitslot: uhrs[0]
+                                      });
+                                      setShowSurveillanceModal(true);
+                                    }}
+                                  >
+                                    <div className="surveillance-info">
+                                      <span>{surveillance.enseignant}</span>
+                                      {surveillance.lieu}
+                                    </div>
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+
+              {uhrs.map((uhr, index) => (
+                <React.Fragment key={uhr._id}>
+                  {/* Ligne de cours */}
+                  <TableRow sx={{ 
+                    '& td': {
+                      borderBottom: '2px solid #e0e0e0',
+                      backgroundColor: '#ffffff'
+                    }
+                  }}>
+                    <TableCell 
+                      sx={{ 
+                        width: '90px',
+                        position: 'relative',
+                        backgroundColor: '#ffffff',
+                        borderRight: '1px solid #e0e0e0',
+                        padding: '8px',
+                        '&:hover': {
+                          backgroundColor: '#f1f3f5'
+                        }
+                      }}
+                    >
+                      <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        gap: '4px',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        backgroundColor: '#fff',
+                        border: '1px solid #e9ecef',
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                          backgroundColor: '#f8f9fa',
+                          transform: 'translateY(-1px)',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                        }
+                      }}>
+                        <Typography sx={{ 
+                          fontWeight: 'bold',
+                          fontSize: '1.1rem',
+                          color: '#1976d2',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          backgroundColor: '#e3f2fd'
+                        }}>
+                          {uhr.nummer}.
+                        </Typography>
+                        <Typography sx={{ 
+                          fontSize: '0.8rem',
+                          color: '#495057',
+                          textAlign: 'center',
+                          lineHeight: 1.2
+                        }}>
+                          {uhr.start}
+                          <br />
+                          {uhr.ende}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    {jours.map((jour) => {
+                      const coursCell = getCoursForCell(jour, uhr._id);
+                      const droppableId = `${jour}-${uhr._id}`;
+                      return (
+                        <TableCell key={droppableId} sx={{ height: '150px', padding: '6px', bgcolor: 'background.paper' }}>
+                          <Box
+                            sx={{
+                              minWidth: 200,
+                              height: 120,
+                              position: 'relative',
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                right: 0,
+                                top: 8,
+                                zIndex: 2,
+                                width: '32px',
+                                height: '32px',
+                                backgroundColor: 'transparent',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              <IconButton
+                                onClick={() => handleCellClick(jour, uhr._id)}
+                                size="small"
+                                sx={{
+                                  color: 'text.secondary',
+                                  '&:hover': {
+                                    color: 'text.primary',
+                                    backgroundColor: 'transparent'
+                                  }
+                                }}
+                              >
+                                +
+                              </IconButton>
+                            </Box>
+                            <Droppable droppableId={droppableId} direction="vertical">
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.droppableProps}
+                                  style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    backgroundColor: snapshot.isDraggingOver ? 'rgba(0, 0, 0, 0.04)' : 'inherit',
+                                    position: 'relative',
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    flexWrap: 'wrap',
+                                    gap: '4px',
+                                    paddingLeft: '8px',
+                                    paddingRight: '30px',
+                                    minHeight: '40px',
+                                    maxHeight: '120px',
+                                    overflow: 'auto',
+                                    alignItems: 'flex-start',
+                                    direction: 'rtl'
+                                  }}
+                                >
+                                  {coursCell.map((cours, index) => (
+                                    <Draggable
+                                      key={cours._id}
+                                      draggableId={cours._id}
+                                      index={index}
+                                    >
+                                      {(provided, snapshot) => (
+                                        <Tooltip 
+                                          title={
+                                            <Box>
+                                              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                                {cours.classe}
+                                              </Typography>
+                                              <Typography variant="body2">
+                                                {cours.enseignants?.map(enseignant => enseignant.nom).join(', ')}
+                                              </Typography>
+                                              <Typography variant="body2">
+                                                {cours.matiere}
+                                              </Typography>
+                                              <Typography variant="body2">
+                                                {cours.salle}
+                                              </Typography>
+                                              {cours.annule && (
+                                                <Typography variant="body2" sx={{ color: '#fb8c00', fontWeight: 'bold' }}>
+                                                  Cours annulé
+                                                </Typography>
+                                              )}
+                                              {cours.remplace && cours.remplacementInfo && (
+                                                <Typography variant="body2" sx={{ color: '#4caf50', fontWeight: 'bold' }}>
+                                                  {cours.remplacementInfo}
+                                                </Typography>
+                                              )}
+                                            </Box>
+                                          }
+                                          arrow
+                                        >
+                                          <div
+                                            ref={provided.innerRef}
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            style={{
+                                              ...provided.draggableProps.style,
+                                              padding: '4px',
+                                              backgroundColor: cours.annule ? '#fb8c00' :
+                                                             cours.remplace ? '#4caf50' :
+                                                             snapshot.isDragging ? '#1976d2' :
+                                                             '#1976d2',
+                                              color: 'white',
+                                              borderRadius: '4px',
+                                              cursor: 'grab',
+                                              boxShadow: snapshot.isDragging ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
+                                              zIndex: snapshot.isDragging ? 1000 : 'auto',
+                                              width: snapshot.isDragging ? '200px' : '100%',
+                                              maxWidth: '100%',
+                                              height: 'auto',
+                                              maxHeight: '120px',
+                                              minHeight: '40px',
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              justifyContent: 'center',
+                                              overflow: 'hidden'
+                                            }}
+                                          >
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                              <Box sx={{ flex: 1 }}>
+                                                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                                                  {cours.classe}
+                                                </Typography>
+                                                <Typography variant="body2">
+                                                  {cours.enseignants?.map(enseignant => enseignant.nom).join(', ')}
+                                                </Typography>
+                                                <Typography variant="body2">
+                                                  {cours.matiere}
+                                                </Typography>
+                                                <Typography variant="body2">
+                                                  {cours.salle}
+                                                </Typography>
+                                              </Box>
+                                              <IconButton
+                                                size="small"
+                                                color="error"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setSelectedCours(cours);
+                                                  setShowDeleteModal(true);
+                                                }}
+                                                sx={{ 
+                                                  color: cours.annule || cours.remplace ? 'inherit' : 'white',
+                                                  marginLeft: '0px'
+                                                }}
+                                              >
+                                                <DeleteIcon fontSize="small" />
+                                              </IconButton>
+                                            </Box>
+                                          </div>
+                                        </Tooltip>
+                                      )}
+                                    </Draggable>
+                                  ))}
+                                  {provided.placeholder}
+                                </div>
+                              )}
+                            </Droppable>
+                          </Box>
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+
+                  {/* Ligne de surveillance entre les tranches horaires */}
+                  {index < uhrs.length - 1 && (
+                    <TableRow sx={{ 
+                      '& td': {
+                        borderBottom: '3px solid #90caf9',
+                        backgroundColor: '#e3f2fd',
+                        height: '40px'
+                      }
+                    }}>
+                      <TableCell 
+                        sx={{ 
+                          width: '90px',
+                          position: 'relative',
+                          backgroundColor: '#e3f2fd',
+                          borderRight: '1px solid #90caf9',
+                          padding: '8px'
+                        }}
+                      >
+                        <Box sx={{ 
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          color: '#1976d2',
+                          fontWeight: 'bold'
+                        }}>
+                          Surveillance
+                        </Box>
+                      </TableCell>
+                      {jours.map((jour) => {
+                        const daySurveillances = surveillances.filter(s => {
+                          const surveillanceDay = s.jour.split('-')[0];
+                          return surveillanceDay === jour && 
+                                 s.position === index &&
+                                 s.semaine === getWeekNumber(currentWeek) &&
+                                 s.annee === currentWeek.getFullYear();
+                        }).sort((a, b) => a.ordre - b.ordre);
+
+                        return (
+                          <TableCell 
+                            key={`${jour}-${index}`}
+                            sx={{ 
+                              height: '50px', 
+                              cursor: 'pointer',
+                              verticalAlign: 'middle',
+                              padding: '8px',
+                              '&:hover': {
+                                bgcolor: '#e9ecef'
+                              }
+                            }}
+                            onClick={() => handleCellClick(jour, uhr._id, true, index)}
+                          >
+                            <Droppable droppableId={`${jour}-${index}`} direction="vertical">
+                              {(provided) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.droppableProps}
+                                  style={{ height: '100%' }}
+                                >
+                                  {daySurveillances.map((surveillance, index) => (
+                                    <Draggable
+                                      key={surveillance._id}
+                                      draggableId={surveillance._id}
+                                      index={index}
+                                    >
+                                      {(provided, snapshot) => (
+                                        <div
+                                          ref={provided.innerRef}
+                                          {...provided.draggableProps}
+                                          {...provided.dragHandleProps}
+                                          className={`surveillance-cell ${snapshot.isDragging ? 'dragging' : ''}`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedSurveillance(surveillance);
+                                            setNewSurveillance({
+                                              enseignant: surveillance.enseignant,
+                                              lieu: surveillance.lieu,
+                                              jour: jour,
+                                              position: index,
+                                              zeitslot: uhr
+                                            });
+                                            setShowSurveillanceModal(true);
+                                          }}
+                                        >
+                                          <div className="surveillance-info">
+                                            <span>{surveillance.enseignant}</span>
+                                            {surveillance.lieu}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  ))}
+                                  {provided.placeholder}
+                                </div>
+                              )}
+                            </Droppable>
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              ))}
+              
+              {uhrs.length > 0 && (
+                <TableRow sx={{ 
+                  '& td': {
+                    borderTop: '2px solid #e0e0e0',
+                    backgroundColor: '#f8f9fa'
+                  }
+                }}>
+                  <TableCell 
+                    sx={{ 
+                      width: '90px',
+                      position: 'relative',
+                      backgroundColor: '#f8f9fa',
+                      borderRight: '1px solid #e0e0e0',
+                      padding: '8px'
+                    }}
+                  />
+                  {jours.map((jour) => {
+                    const surveillances = getSurveillancesForCell(jour, uhrs[uhrs.length - 1]._id);
+                    return (
+                      <TableCell 
+                        key={`${jour}-after`}
+                        sx={{ 
+                          height: '50px',
+                          bgcolor: '#f8f9fa',
+                          borderTop: '2px solid #e0e0e0',
+                          cursor: 'pointer',
+                          verticalAlign: 'middle',
+                          padding: '8px',
+                          '&:hover': {
+                            bgcolor: '#e9ecef'
+                          }
+                        }}
+                        onClick={() => handleCellClick(jour, uhrs[uhrs.length - 1]._id, true, uhrs.length)}
+                      >
+                        <Droppable droppableId={`${jour}-after`} direction="vertical">
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                              style={{ height: '100%' }}
+                            >
+                              {surveillances.map((surveillance, index) => (
+                                <Draggable
+                                  key={surveillance._id}
+                                  draggableId={surveillance._id}
+                                  index={index}
+                                >
+                                  {(provided, snapshot) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className={`surveillance-cell ${snapshot.isDragging ? 'dragging' : ''}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedSurveillance(surveillance);
+                                        setNewSurveillance({
+                                          enseignant: surveillance.enseignant,
+                                          lieu: surveillance.lieu,
+                                          jour: jour,
+                                          position: uhrs.length,
+                                          zeitslot: uhrs[uhrs.length - 1]
+                                        });
+                                        setShowSurveillanceModal(true);
+                                      }}
+                                    >
+                                      <div className="surveillance-info">
+                                        <span>{surveillance.enseignant}</span>
+                                        {surveillance.lieu}
+                                      </div>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              )}
+              
+              {uhrs.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    <Typography variant="body1" color="text.secondary">
+                      Aucune heure n'est disponible
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+              
+              {/* Ligne des annotations */}
+              <TableRow sx={{ 
+                bgcolor: 'background.paper',
+                '&:last-child td': {
+                  borderBottom: 'none'
+                }
+              }}>
+                <TableCell sx={{ 
+                  py: 2, 
+                  bgcolor: 'rgba(0, 0, 0, 0.02)',
+                  borderRight: '1px solid #e0e0e0',
+                  borderBottom: '1px solid #e0e0e0'
+                }}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: '500' }}>
+                    {t('planning.annotations', 'Annotations')}
+                  </Typography>
+                </TableCell>
+                {jours.map((jour, index) => (
+                  <TableCell 
+                    key={index} 
+                    align="center" 
+                    sx={{ 
+                      minWidth: '200px', 
+                      maxWidth: '300px',
+                      borderBottom: '1px solid #e0e0e0'
+                    }}
+                  >
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      gap: 1,
+                      height: '100%'
+                    }}>
+                      {editingAnnotation === jour ? (
+                        <Box sx={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: 1,
+                          width: '100%'
+                        }}>
+                          <TextField
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            multiline
+                            rows={2}
+                            value={annotations[convertToFrenchDay(jour)] || ''}
+                            onChange={(e) => handleAnnotationChange(jour, e.target.value)}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter') {
+                                handleAnnotationSave(jour);
+                              }
+                            }}
+                            sx={annotationTextFieldStyle}
+                            placeholder={t('planning.addAnnotation', 'Ajouter une annotation...')}
+                          />
+                          <IconButton
+                            size="small"
+                            onClick={() => handleAnnotationSave(jour)}
+                            sx={annotationSaveButtonStyle}
+                          >
+                            <SaveIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      ) : (
+                        <Typography
+                          onClick={() => setEditingAnnotation(jour)}
+                          sx={{
+                            ...annotationStyle,
+                            width: '100%',
+                            minHeight: '60px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            color: annotations[convertToFrenchDay(jour)] ? 'text.primary' : 'text.secondary',
+                            fontStyle: annotations[convertToFrenchDay(jour)] ? 'normal' : 'italic'
+                          }}
+                        >
+                          {annotations[convertToFrenchDay(jour)] || t('planning.addAnnotation', 'Cliquez pour ajouter une annotation')}
+                        </Typography>
+                      )}
+                    </Box>
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </DragDropContext>
+
+      {/* Modal pour modifier l'heure */}
+      <Dialog open={isTimeModalOpen} onClose={() => setIsTimeModalOpen(false)}>
+        <DialogTitle>{t('planning.editTimeSlot')}</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label={t('planning.newTimeSlot')}
+            value={customTime}
+            onChange={(e) => setCustomTime(e.target.value)}
+            placeholder="Ex: 7:40 - 8:25"
+            margin="normal"
+            helperText={t('planning.timeFormat')}
+            error={!!error}
+            FormHelperTextProps={{ error: !!error }}
+          />
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setIsTimeModalOpen(false);
+            setError('');
+          }}>
+            {t('common.cancel')}
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleTimeChange}
+            disabled={!customTime}
+          >
+            {t('common.save')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal pour ajouter une nouvelle tranche horaire */}
+      <Dialog open={isAddTimeModalOpen} onClose={() => setIsAddTimeModalOpen(false)}>
+        <DialogTitle>Ajouter une nouvelle tranche horaire</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="Numéro de la tranche"
+            type="number"
+            value={newTimeSlot.nummer}
+            onChange={(e) => setNewTimeSlot({ ...newTimeSlot, nummer: e.target.value })}
+            placeholder="Ex: 9"
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Nouvelle tranche horaire"
+            value={newTimeSlot.zeitslot}
+            onChange={(e) => setNewTimeSlot({ ...newTimeSlot, zeitslot: e.target.value })}
+            placeholder="Ex: 7:40 - 8:25"
+            margin="normal"
+            helperText="Format: HH:MM - HH:MM"
+            error={!!error}
+            FormHelperTextProps={{ error: !!error }}
+          />
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setIsAddTimeModalOpen(false);
+            setError('');
+          }}>
+            Annuler
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleAddTimeSlot}
+            disabled={!newTimeSlot.nummer || !newTimeSlot.zeitslot}
+          >
+            Ajouter
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal pour ajouter un nouveau cours */}
+      <Dialog 
+        open={isAddSlotModalOpen} 
+        onClose={() => {
+          setIsAddSlotModalOpen(false);
+          setError('');
+          setFormData({
+            classe: '',
+            enseignants: [],
+            matiere: '',
+            salle: '',
+            jour: '',
+            uhr: '',
+            semaine: 1
+          });
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {selectedCell?.slot ? t('planning.editCourse') : t('planning.addCourse')}
+          <Typography variant="subtitle2" color="text.secondary">
+            {selectedCell?.jour} - {uhrs.find(u => u._id === selectedCell?.uhrId)?.zeitslot}
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>{t('planning.class')}</InputLabel>
+            <Select
+              value={formData.classe}
+              onChange={(e) => setFormData({ ...formData, classe: e.target.value })}
+              label={t('planning.class')}
+            >
+              {classes && classes.map((classe) => (
+                <MenuItem key={classe._id} value={classe.nom}>
+                  {classe.nom} (nombre d'élèves: {classe.nombreEleves || 0})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>{t('planning.teachers')}</InputLabel>
+            <Select
+              multiple
+              value={formData.enseignants}
+              onChange={(e) => {
+                // Filtrer la valeur "toggleAll" si elle est présente
+                const filteredValues = e.target.value.filter(value => value !== "toggleAll");
+                setFormData({ ...formData, enseignants: filteredValues });
+              }}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((value) => (
+                    <Chip key={value} label={value} />
+                  ))}
+                </Box>
+              )}
+            >
+              <MenuItem 
+                value="toggleAll" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAllEnseignants(!showAllEnseignants);
+                }}
+                sx={{ 
+                  backgroundColor: '#f5f5f5',
+                  '&:hover': {
+                    backgroundColor: '#e0e0e0'
+                  }
+                }}
+              >
+                {showAllEnseignants ? t('planning.showAvailableTeachers', 'Voir les enseignants disponibles') : t('planning.showAllTeachers', 'Voir tous les enseignants')}
+              </MenuItem>
+              {getEnseignantsDisponibles(selectedCell?.jour, selectedCell?.uhrId).map((enseignant) => (
+                <MenuItem key={enseignant._id} value={enseignant.nom}>
+                  {enseignant.nom} ({enseignant.matieres?.join(', ') || 'Aucune matière'})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>{t('planning.subject')}</InputLabel>
+            <Select
+              value={formData.matiere}
+              onChange={(e) => setFormData({ ...formData, matiere: e.target.value })}
+              label={t('planning.subject')}
+            >
+              {matieres.map((matiere) => (
+                <MenuItem key={matiere._id} value={matiere.nom}>
+                  {matiere.nom}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>{t('planning.room')}</InputLabel>
+            <Select
+              value={formData.salle}
+              onChange={(e) => {
+                if (e.target.value !== "toggleAll") {
+                  setFormData({ ...formData, salle: e.target.value });
+                }
+              }}
+              label={t('planning.room')}
+            >
+              <MenuItem 
+                value="toggleAll" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAllSalles(!showAllSalles);
+                }}
+                sx={{ 
+                  backgroundColor: '#f5f5f5',
+                  '&:hover': {
+                    backgroundColor: '#e0e0e0'
+                  }
+                }}
+              >
+                {showAllSalles ? t('planning.showAvailableRooms', 'Voir les salles disponibles') : t('planning.showAllRooms', 'Voir toutes les salles')}
+              </MenuItem>
+              {getSallesDisponibles(selectedCell?.jour, selectedCell?.uhrId).map((salle) => (
+                <MenuItem key={salle._id} value={salle.nom}>
+                  {salle.nom} (Places disponibles : {salle.capacite || 0})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setIsAddSlotModalOpen(false);
+            setError('');
+            setFormData({
+              classe: '',
+              enseignants: [],
+              matiere: '',
+              salle: '',
+              jour: '',
+              uhr: '',
+              semaine: 1
+            });
+          }}>
+            {t('common.cancel')}
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSubmitModal}
+            disabled={!formData.classe || !formData.enseignants.length || !formData.matiere || !formData.salle}
+          >
+            {t('common.add')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialogue pour enregistrer un modèle de semaine */}
+      <Dialog
+        open={showSaveModelDialog}
+        onClose={() => setShowSaveModelDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>{t('planning.saveAsModel', 'Enregistrer cette semaine comme modèle')}</DialogTitle>
+        <DialogContent>
+          <TextField
+            label={t('planning.modelName', 'Nom du modèle')}
+            value={modelName}
+            onChange={(e) => setModelName(e.target.value)}
+            fullWidth
+            margin="normal"
+            autoFocus
+            helperText={t('planning.modelNameHelp', 'Donnez un nom descriptif à ce modèle de semaine')}
+          />
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            {t('planning.modelSaveInfo', 'Ce modèle contiendra les cours de la semaine {{week}} de l\'année {{year}}', {
+              week: getWeekNumber(currentWeek),
+              year: currentWeek.getFullYear()
+            })}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowSaveModelDialog(false)}>
+            {t('common.cancel', 'Annuler')}
+          </Button>
+          <Button 
+            onClick={handleSaveModelConfirm}
+            variant="contained" 
+            color="primary"
+          >
+            {t('common.save', 'Enregistrer')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialogue pour sélectionner un modèle à appliquer */}
+      <Dialog
+        open={showModelSelectionDialog}
+        onClose={() => setShowModelSelectionDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>{t('planning.selectModel', 'Sélectionner un modèle de semaine')}</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {t('planning.applyModelInfo', 'Sélectionnez un modèle à appliquer à la semaine {{week}} de l\'année {{year}}', {
+              week: getWeekNumber(currentWeek),
+              year: currentWeek.getFullYear()
+            })}
+          </Typography>
+          
+          <TableContainer component={Paper} sx={{ maxHeight: 300 }}>
+            <Table stickyHeader size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('planning.modelName', 'Nom du modèle')}</TableCell>
+                  <TableCell>{t('planning.sourceWeek', 'Semaine source')}</TableCell>
+                  <TableCell>{t('planning.courseCount', 'Nombre de cours')}</TableCell>
+                  <TableCell>{t('planning.createdAt', 'Créé le')}</TableCell>
+                  <TableCell align="center">{t('common.actions', 'Actions')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {modelWeeks.map((model) => (
+                  <TableRow 
+                    key={model.id}
+                    hover
+                    selected={selectedModelWeek?.id === model.id}
+                    onClick={() => setSelectedModelWeek(model)}
+                    sx={{ cursor: 'pointer' }}
+                  >
+                    <TableCell>{model.name}</TableCell>
+                    <TableCell>
+                      {t('planning.week')} {model.sourceWeek} - {model.sourceYear}
+                    </TableCell>
+                    <TableCell>{model.courses.length}</TableCell>
+                    <TableCell>
+                      {new Date(model.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell align="center">
+                      <IconButton 
+                        size="small" 
+                        color="error"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteModel(model.id);
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {modelWeeks.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      {t('planning.noModelSaved', 'Aucun modèle de semaine n\'est enregistré')}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          
+          {selectedModelWeek && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                {t('planning.selectedModel', 'Modèle sélectionné')}: {selectedModelWeek.name}
+              </Typography>
+              <Typography variant="body2">
+                {t('planning.modelContains', 'Ce modèle contient {{count}} cours de la semaine {{week}} - {{year}}', {
+                  count: selectedModelWeek.courses.length,
+                  week: selectedModelWeek.sourceWeek,
+                  year: selectedModelWeek.sourceYear
+                })}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowModelSelectionDialog(false)}>
+            {t('common.cancel', 'Annuler')}
+          </Button>
+          <Button 
+            onClick={handleApplyModel}
+            variant="contained" 
+            color="primary"
+            disabled={!selectedModelWeek}
+          >
+            {t('planning.applySelectedModel', 'Appliquer le modèle')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal de confirmation pour coller une semaine */}
+      <Dialog
+        open={showPasteConfirmation}
+        onClose={() => setShowPasteConfirmation(false)}
+      >
+        <DialogTitle>{t('planning.confirmPasteWeek', 'Confirmer le collage de la semaine')}</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1">
+            {t('planning.confirmPasteWeekText', 'Voulez-vous coller la semaine {{sourceWeek}} de {{sourceYear}} vers la semaine {{targetWeek}} de {{targetYear}} ?', {
+              sourceWeek: copiedWeekData?.sourceWeek,
+              sourceYear: copiedWeekData?.sourceYear,
+              targetWeek: getWeekNumber(currentWeek),
+              targetYear: currentWeek.getFullYear()
+            })}
+          </Typography>
+          <Typography variant="body2" color="warning.main" sx={{ mt: 2 }}>
+            {t('planning.pasteWarning', 'Cette action n\'écrasera pas les cours existants dans la semaine cible. Les cours seront ajoutés en plus des cours existants.')}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowPasteConfirmation(false)}>
+            {t('common.cancel', 'Annuler')}
+          </Button>
+          <Button 
+            onClick={handlePasteWeek}
+            variant="contained" 
+            color="primary"
+          >
+            {t('common.confirm', 'Confirmer')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal de surveillance */}
+      <Dialog
+        open={showSurveillanceModal}
+        onClose={() => setShowSurveillanceModal(false)}
+      >
+        <DialogTitle>
+          {selectedSurveillance ? t('planning.surveillance.edit') : t('planning.surveillance.add')}
+        </DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>{t('planning.surveillance.teacher')}</InputLabel>
+            <Select
+              value={newSurveillance.enseignant}
+              onChange={(e) => setNewSurveillance({ ...newSurveillance, enseignant: e.target.value })}
+              label={t('planning.surveillance.teacher')}
+            >
+              {enseignants.map((enseignant) => (
+                <MenuItem key={enseignant._id} value={enseignant.nom}>
+                  {enseignant.nom}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            fullWidth
+            margin="normal"
+            label={t('planning.surveillance.location')}
+            value={newSurveillance.lieu}
+            onChange={(e) => setNewSurveillance({ ...newSurveillance, lieu: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowSurveillanceModal(false)}>
+            {t('common.cancel')}
+          </Button>
+          {selectedSurveillance && (
+            <Button 
+              color="error" 
+              onClick={() => {
+                handleDeleteSurveillance(selectedSurveillance);
+                setShowSurveillanceModal(false);
+              }}
+            >
+              {t('common.delete')}
+            </Button>
+          )}
+          <Button 
+            variant="contained" 
+            onClick={handleAddSurveillance}
+            disabled={!newSurveillance.enseignant || !newSurveillance.lieu}
+          >
+            {t('common.save')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal de suppression de cours */}
+      <Dialog
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        PaperProps={{
+          sx: {
+            minWidth: '400px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          backgroundColor: '#f5f5f5',
+          borderBottom: '1px solid #e0e0e0',
+          padding: '16px 24px',
+          fontSize: '1.25rem',
+          fontWeight: '500'
+        }}>
+          {t('planning.deleteCourse')}
+        </DialogTitle>
+        <DialogContent sx={{ padding: '24px' }}>
+          <Typography sx={{ 
+            fontSize: '1rem',
+            color: '#333',
+            marginBottom: '16px'
+          }}>
+            {t('planning.deleteCourseConfirm')}
+          </Typography>
+          <Box sx={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+          }}>
+            <Button 
+              onClick={() => {
+                handleDeleteConfirm('delete');
+                setShowDeleteModal(false);
+              }}
+              variant="contained"
+              color="error"
+              sx={{
+                width: '100%',
+                textTransform: 'none',
+                fontSize: '1rem',
+                padding: '8px 16px'
+              }}
+            >
+              {t('common.delete')}
+            </Button>
+            <Button 
+              onClick={() => {
+                handleDeleteConfirm('cancel');
+                setShowDeleteModal(false);
+              }}
+              variant="contained"
+              color="warning"
+              sx={{
+                width: '100%',
+                textTransform: 'none',
+                fontSize: '1rem',
+                padding: '8px 16px'
+              }}
+            >
+              {t('planning.cancelCourse')}
+            </Button>
+            <Button 
+              onClick={() => {
+                handleDeleteConfirm('replace');
+                setShowDeleteModal(false);
+              }}
+              variant="contained"
+              color="success"
+              sx={{
+                width: '100%',
+                textTransform: 'none',
+                fontSize: '1rem',
+                padding: '8px 16px'
+              }}
+            >
+              {t('planning.replaceCourse')}
+            </Button>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ 
+          padding: '16px 24px',
+          borderTop: '1px solid #e0e0e0',
+          backgroundColor: '#f5f5f5'
+        }}>
+          <Button 
+            onClick={() => setShowDeleteModal(false)}
+            sx={{
+              textTransform: 'none',
+              fontSize: '1rem'
+            }}
+          >
+            {t('common.cancel')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal de remplacement */}
+      <Dialog
+        open={showReplaceModal}
+        onClose={handleReplaceCancel}
+        PaperProps={{
+          sx: {
+            minWidth: '400px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          backgroundColor: '#f5f5f5',
+          borderBottom: '1px solid #e0e0e0',
+          padding: '16px 24px',
+          fontSize: '1.25rem',
+          fontWeight: '500'
+        }}>
+          {t('planning.replaceCourse')}
+        </DialogTitle>
+        <DialogContent sx={{ padding: '24px' }}>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>{t('planning.teachers')}</InputLabel>
+            <Select
+              multiple
+              value={replacementData.enseignants}
+              onChange={(e) => setReplacementData({ ...replacementData, enseignants: e.target.value })}
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((value) => (
+                    <Chip 
+                      key={value} 
+                      label={typeof value === 'string' ? value : value.nom || ''} 
+                    />
+                  ))}
+                </Box>
+              )}
+            >
+              {enseignants.map((enseignant) => (
+                <MenuItem key={enseignant._id} value={enseignant.nom}>
+                  {enseignant.nom}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>{t('planning.subject')}</InputLabel>
+            <Select
+              value={replacementData.matiere}
+              onChange={(e) => setReplacementData({ ...replacementData, matiere: e.target.value })}
+            >
+              {matieres.map((matiere) => (
+                <MenuItem key={matiere._id} value={matiere.nom}>
+                  {matiere.nom}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>{t('planning.room')}</InputLabel>
+            <Select
+              value={replacementData.salle}
+              onChange={(e) => setReplacementData({ ...replacementData, salle: e.target.value })}
+            >
+              {salles.map((salle) => (
+                <MenuItem key={salle._id} value={salle.nom}>
+                  {salle.nom}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions sx={{ 
+          padding: '16px 24px',
+          borderTop: '1px solid #e0e0e0',
+          backgroundColor: '#f5f5f5'
+        }}>
+          <Button 
+            onClick={handleReplaceCancel}
+            sx={{
+              textTransform: 'none',
+              fontSize: '1rem'
+            }}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button 
+            onClick={handleReplaceSubmit} 
+            variant="contained" 
+            color="success"
+            sx={{
+              textTransform: 'none',
+              fontSize: '1rem'
+            }}
+          >
+            {t('common.save')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+}
+
+export default Planning; 

@@ -1,0 +1,77 @@
+.table-header {
+  background-color: #1976d2;
+  color: white;
+  font-weight: bold;
+  padding: 12px;
+  text-align: center;
+  border-radius: 8px 8px 0 0;
+}
+
+.table-header-cell {
+  background-color: #1976d2 !important;
+  color: white !important;
+  font-weight: bold !important;
+  padding: 12px !important;
+  text-align: center !important;
+  border-radius: 8px 8px 0 0 !important;
+}
+
+.surveillance-cell {
+  height: 30px;
+  background-color: #e3f2fd;
+  border: 1px solid #90caf9;
+  cursor: pointer;
+  vertical-align: middle;
+  padding: 4px;
+  transition: all 0.3s ease;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.surveillance-cell:hover {
+  background-color: #bbdefb;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  border-color: #90caf9;
+}
+
+.surveillance-cell.dragging {
+  background-color: #90caf9;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transform: scale(1.02);
+  border-color: #42a5f5;
+}
+
+.surveillance-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 8px;
+  padding: 4px;
+}
+
+.surveillance-info span:first-child {
+  font-weight: bold;
+  font-size: 0.85rem;
+  color: #1565c0;
+}
+
+.surveillance-info span:last-child {
+  font-size: 0.85rem;
+  color: #1565c0;
+  font-weight: bold;
+}
+
+.time-cell {
+  width: 90px;
+  position: relative;
+  background-color: #f8f9fa;
+  border-right: 1px solid #e0e0e0;
+  padding: 8px;
+  text-align: center;
+  font-weight: bold;
+  color: #1976d2;
+} 

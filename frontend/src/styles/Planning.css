@@ -1,0 +1,78 @@
+/* Les styles sont maintenant gérés par Material-UI */ 
+
+/* Styles pour la page de planning */
+
+/* Styles pour le tableau */
+.MuiTableCell-head {
+  background-color: #1976d2 !important;
+  color: white !important;
+  font-weight: bold !important;
+}
+
+/* Styles pour surligner le jour actuel */
+.MuiTableCell-head.today {
+  background-color: #42a5f5 !important;
+}
+
+/* Styles pour les cellules du planning */
+.planning-cell {
+  min-width: 200px;
+  height: 120px;
+  position: relative;
+  padding: 8px;
+  transition: background-color 0.2s;
+}
+
+.planning-cell:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Styles pour les cartes de cours */
+.course-card {
+  background-color: #1976d2;
+  color: white;
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.course-card.cancelled {
+  background-color: #ed6c02;
+  text-decoration: line-through;
+}
+
+.course-card.replaced {
+  background-color: #2e7d32;
+}
+
+/* Styles pour la navigation entre les semaines */
+.week-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.week-navigation button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin: 0 8px;
+}
+
+.week-info {
+  text-align: center;
+  margin: 0 16px;
+}
+
+/* Styles pour les annotations */
+.annotation-container {
+  margin-top: 16px;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+} 

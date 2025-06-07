@@ -29,13 +29,19 @@ git clone [URL_DU_REPO]
 cd Geco-SchoolPlan
 ```
 
-2. Installez les dépendances :
+2. Installez les dépendances backend :
 ```bash
 cd backend
 npm install
 ```
 
-3. Créez un fichier `.env` à la racine du dossier backend avec les variables suivantes :
+3. Installez les dépendances frontend :
+```bash
+cd frontend
+npm install
+```
+
+4. Créez un fichier `.env` à la racine du dossier backend avec les variables suivantes :
 ```
 MONGODB_URI=votre_uri_mongodb
 // Exemple : MONGODB_URI=mongodb://192.168.1.104:27017/Geco-SchoolPlan

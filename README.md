@@ -4,7 +4,9 @@ Application de gestion d'emploi du temps scolaire avec une API mobile.
 
 Cette application a un frontend web qui permet la gestion de planning (modification, affectation, visualisation...)
 et une application mobile pour les enseignants et eleves qui peuvent se connecter au serveur avec leur Smartphone en visualisation uniquement :
+
 https://github.com/Michaux-Technology/Geco-SchoolPlan-App
+
 
 Attention, ce programme est encore en cours de developpement.
 

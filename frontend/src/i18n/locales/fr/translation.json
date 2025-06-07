@@ -103,7 +103,19 @@
     "createdAt": "Créé le",
     "selectedModel": "Modèle sélectionné",
     "modelContains": "Ce modèle contient {{count}} cours de la semaine {{week}} - {{year}}",
-    "applySelectedModel": "Appliquer le modèle"
+    "applySelectedModel": "Appliquer le modèle",
+    "surveillance": {
+      "add": "Ajouter une surveillance",
+      "edit": "Modifier la surveillance",
+      "delete": "Supprimer la surveillance",
+      "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette surveillance ?",
+      "teacher": "Enseignant",
+      "location": "Lieu",
+      "added": "Surveillance ajoutée avec succès",
+      "updated": "Surveillance mise à jour avec succès",
+      "deleted": "Surveillance supprimée avec succès",
+      "addError": "Erreur lors de l'ajout de la surveillance"
+    }
   },
   "auth": {
     "login": "Connexion",

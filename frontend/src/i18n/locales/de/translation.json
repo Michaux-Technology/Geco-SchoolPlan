@@ -102,7 +102,19 @@
     "createdAt": "Erstellt am",
     "selectedModel": "Ausgewählte Vorlage",
     "modelContains": "Diese Vorlage enthält {{count}} Kurse aus Woche {{week}} - {{year}}",
-    "applySelectedModel": "Vorlage anwenden"
+    "applySelectedModel": "Vorlage anwenden",
+    "surveillance": {
+      "add": "Aufsicht hinzufügen",
+      "edit": "Aufsicht bearbeiten",
+      "delete": "Aufsicht löschen",
+      "confirmDelete": "Möchten Sie diese Aufsicht wirklich löschen?",
+      "teacher": "Lehrer",
+      "location": "Ort",
+      "added": "Aufsicht erfolgreich hinzugefügt",
+      "updated": "Aufsicht erfolgreich aktualisiert",
+      "deleted": "Aufsicht erfolgreich gelöscht",
+      "addError": "Fehler beim Hinzufügen der Aufsicht"
+    }
   },
   "auth": {
     "login": "Anmelden",

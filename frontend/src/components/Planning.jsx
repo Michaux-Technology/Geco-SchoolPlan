@@ -60,6 +60,92 @@ function Planning() {
   const socket = useRef(null);
   const socketInitialized = useRef(false);
 
+  // Fonction pour convertir le jour traduit vers le format français pour la base de données
+  const convertToFrenchDay = (translatedDay) => {
+    // Vérifier si le paramètre est valide
+    if (!translatedDay) {
+      console.warn('convertToFrenchDay: jour non défini ou invalide', { translatedDay });
+      return 'Lundi'; // Valeur par défaut
+    }
+
+    // Vérifier si le jour est déjà en français
+    const joursFrancais = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+    if (joursFrancais.includes(translatedDay)) {
+      return translatedDay;
+    }
+
+    try {
+      // Créer un mapping pour chaque langue possible
+      const dayMappings = {
+        // Français (clés i18n)
+        [t('planning.days.monday')]: 'Lundi',
+        [t('planning.days.tuesday')]: 'Mardi',
+        [t('planning.days.wednesday')]: 'Mercredi',
+        [t('planning.days.thursday')]: 'Jeudi',
+        [t('planning.days.friday')]: 'Vendredi',
+        
+        // Anglais
+        'Monday': 'Lundi',
+        'Tuesday': 'Mardi',
+        'Wednesday': 'Mercredi',
+        'Thursday': 'Jeudi',
+        'Friday': 'Vendredi'
+      };
+
+      // Ajouter des mappings pour d'autres langues si nécessaire
+      if (i18n.language === 'de') {
+        Object.assign(dayMappings, {
+          'Montag': 'Lundi',
+          'Dienstag': 'Mardi',
+          'Mittwoch': 'Mercredi',
+          'Donnerstag': 'Jeudi',
+          'Freitag': 'Vendredi'
+        });
+      }
+
+      // Si le jour est déjà en français ou traduit, on le convertit
+      const result = dayMappings[translatedDay];
+      
+      console.log('Conversion du jour:', { 
+        jourRecu: translatedDay,
+        resultat: result || translatedDay,
+        langue: i18n.language,
+        mappingsDisponibles: Object.keys(dayMappings),
+        joursFrancais: joursFrancais
+      });
+      
+      if (!result) {
+        console.warn('Jour non trouvé dans les mappings:', {
+          jourRecu: translatedDay,
+          langue: i18n.language,
+          mappingsDisponibles: Object.keys(dayMappings)
+        });
+        // Si pas de correspondance trouvée, retourner le jour tel quel
+        return translatedDay;
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('Erreur lors de la conversion du jour:', error);
+      return translatedDay; // En cas d'erreur, retourner le jour tel quel
+    }
+  };
+
+  // Fonction pour convertir le jour français vers le jour traduit dans l'interface
+  const convertFromFrenchDay = (frenchDay) => {
+    const dayMappings = {
+      'Lundi': 'planning.days.monday',
+      'Mardi': 'planning.days.tuesday',
+      'Mercredi': 'planning.days.wednesday',
+      'Jeudi': 'planning.days.thursday',
+      'Vendredi': 'planning.days.friday'
+    };
+    const translatedKey = dayMappings[frenchDay] || frenchDay;
+    const result = t(translatedKey);
+    console.log('Converting from French:', { frenchDay, translatedKey, result });
+    return result;
+  };
+
   // Jours traduits avec i18next
   const jours = [
     t('planning.days.monday'), 
@@ -68,6 +154,14 @@ function Planning() {
     t('planning.days.thursday'), 
     t('planning.days.friday')
   ];
+
+  // Effet pour recharger les données quand la langue change
+  useEffect(() => {
+    if (socket.current) {
+      socket.current.emit('getCours');
+      socket.current.emit('getSurveillances');
+    }
+  }, [i18n.language]);
 
   const [planning, setPlanning] = useState([]);
   const [surveillances, setSurveillances] = useState([]);
@@ -587,13 +681,56 @@ function Planning() {
     }
   };
 
-  const handleAddSurveillance = (newSurveillance) => {
+  const handleAddSurveillance = () => {
     const currentYear = new Date().getFullYear();
+    const weekNumber = getWeekNumber(currentWeek);
+    const frenchDay = convertToFrenchDay(newSurveillance.jour);
+
+    console.log('Adding surveillance:', {
+      original: newSurveillance,
+      frenchDay,
+      weekNumber,
+      currentYear
+    });
+
     const surveillanceData = {
-      ...newSurveillance,
-      annee: currentYear
+      enseignant: newSurveillance.enseignant,
+      lieu: newSurveillance.lieu,
+      jour: frenchDay,
+      position: newSurveillance.position,
+      uhr: newSurveillance.zeitslot?._id || newSurveillance.zeitslot,
+      semaine: weekNumber,
+      annee: currentYear,
+      type: 'entre_creneaux',
+      duree: 1
     };
-    socket.emit('addSurveillance', surveillanceData);
+
+    console.log('Surveillance data to send:', surveillanceData);
+
+    if (!surveillanceData.uhr) {
+      enqueueSnackbar(t('planning.surveillance.addError'), { variant: 'error' });
+      return;
+    }
+
+    socket.current.once('surveillanceAdded', (surveillance) => {
+      console.log('Surveillance added:', surveillance);
+      enqueueSnackbar(t('planning.surveillance.added'), { variant: 'success' });
+      setShowSurveillanceModal(false);
+      setNewSurveillance({
+        enseignant: '',
+        lieu: '',
+        jour: '',
+        position: -1,
+        zeitslot: null
+      });
+    });
+
+    socket.current.once('surveillanceError', (error) => {
+      console.error('Erreur lors de l\'ajout de la surveillance:', error);
+      enqueueSnackbar(t('planning.surveillance.addError'), { variant: 'error' });
+    });
+
+    socket.current.emit('addSurveillance', surveillanceData);
   };
 
   const handleDeleteSurveillance = (surveillance) => {
@@ -779,21 +916,6 @@ function Planning() {
     setError('');
   };
 
-  // Fonction pour convertir le jour traduit vers le format français pour la base de données
-  const convertToFrenchDay = (translatedDay) => {
-    // Obtenir les traductions des jours
-    const dayTranslations = {
-      [t('planning.days.monday')]: 'Lundi',
-      [t('planning.days.tuesday')]: 'Mardi',
-      [t('planning.days.wednesday')]: 'Mercredi',
-      [t('planning.days.thursday')]: 'Jeudi',
-      [t('planning.days.friday')]: 'Vendredi'
-    };
-
-    // Retourner le jour en français correspondant à la traduction
-    return dayTranslations[translatedDay] || 'Lundi';
-  };
-
   const handleSubmitModal = () => {
     if (!formData.classe || !formData.enseignants || formData.enseignants.length === 0 || !formData.matiere || !formData.salle || !formData.jour || !formData.uhr) {
       setError('Tous les champs sont requis');
@@ -865,21 +987,6 @@ function Planning() {
     });
   };
 
-  // Fonction pour convertir le jour français vers le jour traduit dans l'interface
-  const convertFromFrenchDay = (frenchDay) => {
-    const dayKeys = {
-      'Lundi': 'planning.days.monday',
-      'Mardi': 'planning.days.tuesday',
-      'Mercredi': 'planning.days.wednesday',
-      'Jeudi': 'planning.days.thursday',
-      'Vendredi': 'planning.days.friday'
-    };
-    
-    // Utiliser la clé de traduction correspondante
-    return t(dayKeys[frenchDay] || dayKeys['Lundi']);
-  };
-
-  // Modification de la fonction getCoursForCell pour utiliser les bonnes propriétés d'heure
   const getCoursForCell = (jour, uhrId) => {
     const filteredCours = getFilteredCours();
     const uhr = uhrs.find(u => u._id === uhrId);
@@ -1259,13 +1366,50 @@ function Planning() {
 
   // Fonction pour obtenir les surveillances pour une cellule spécifique
   const getSurveillancesForCell = (jour, uhrId) => {
-    return surveillances.filter(s => {
+    // Convertir le jour traduit en français pour la comparaison avec la base de données
+    const frenchDay = convertToFrenchDay(jour);
+    
+    console.log('Recherche des surveillances:', {
+      jourRecu: jour,
+      jourConvertiFrancais: frenchDay,
+      uhrId: uhrId,
+      semaine: getWeekNumber(currentWeek),
+      annee: currentWeek.getFullYear(),
+      toutesLesSurveillances: surveillances,
+      langue: i18n.language
+    });
+    
+    const filteredSurveillances = surveillances.filter(s => {
+      // Extraire uniquement le jour de la surveillance (sans la partie après le tiret si elle existe)
       const surveillanceDay = s.jour.split('-')[0];
-      return surveillanceDay === jour && 
+      
+      const matches = surveillanceDay === frenchDay && 
              s.uhr === uhrId &&
              s.semaine === getWeekNumber(currentWeek) &&
              s.annee === currentWeek.getFullYear();
-    }).sort((a, b) => a.ordre - b.ordre);
+      
+      console.log('Vérification surveillance:', {
+        surveillance: s,
+        jourSurveillance: surveillanceDay,
+        jourRecherche: frenchDay,
+        correspondance: matches,
+        conditions: {
+          jourMatch: surveillanceDay === frenchDay,
+          uhrMatch: s.uhr === uhrId,
+          semaineMatch: s.semaine === getWeekNumber(currentWeek),
+          anneeMatch: s.annee === currentWeek.getFullYear()
+        }
+      });
+      
+      return matches;
+    });
+
+    console.log('Surveillances filtrées:', {
+      nombre: filteredSurveillances.length,
+      surveillances: filteredSurveillances
+    });
+
+    return filteredSurveillances.sort((a, b) => a.ordre - b.ordre);
   };
 
   // Fonction pour obtenir les salles disponibles pour un créneau horaire
@@ -1275,9 +1419,22 @@ function Planning() {
       return salles;
     }
 
+    // Vérifier si le jour est défini
+    if (!jour) {
+      console.warn('getSallesDisponibles: jour non défini');
+      return salles;
+    }
+
+    // Convertir le jour en français
+    const frenchDay = convertToFrenchDay(jour);
+    if (!frenchDay) {
+      console.warn('getSallesDisponibles: conversion du jour a échoué', { jour });
+      return salles;
+    }
+
     // Obtenir tous les cours pour ce créneau
     const coursDuCreneau = cours.filter(c => 
-      c.jour === convertToFrenchDay(jour) && 
+      c.jour === frenchDay && 
       c.uhr === uhrId &&
       c.semaine === getWeekNumber(currentWeek) &&
       c.annee === currentWeek.getFullYear() &&
@@ -1315,6 +1472,29 @@ function Planning() {
     }, []);
     
     return enseignants.filter(e => !enseignantsOccupesIds.includes(e._id));
+  };
+
+  // Dans le rendu des surveillances
+  const renderSurveillance = (surveillance) => {
+    return (
+      <div className="surveillance-info">
+        <span>{surveillance.enseignant}</span>
+        <span>{surveillance.lieu}</span>
+      </div>
+    );
+  };
+
+  // Dans le modal de surveillance
+  const handleSurveillanceClick = (surveillance, jour) => {
+    setSelectedSurveillance(surveillance);
+    setNewSurveillance({
+      enseignant: surveillance.enseignant,
+      lieu: surveillance.lieu,
+      jour: jour, // Utiliser le jour déjà traduit passé en paramètre
+      position: surveillance.position,
+      zeitslot: surveillance.uhr
+    });
+    setShowSurveillanceModal(true);
   };
 
   return (
@@ -1525,12 +1705,32 @@ function Planning() {
                   </Box>
                 </TableCell>
                 {jours.map((jour) => {
+                  // Convertir le jour traduit en français pour la comparaison
+                  const frenchDay = convertToFrenchDay(jour);
+                  console.log('Filtrage des surveillances:', {
+                    jourTraduit: jour,
+                    jourFrancais: frenchDay,
+                    langue: i18n.language,
+                    surveillancesDisponibles: surveillances
+                  });
+                  
                   const daySurveillances = surveillances.filter(s => {
                     const surveillanceDay = s.jour.split('-')[0];
-                    return surveillanceDay === jour && 
+                    const matches = surveillanceDay === frenchDay && 
                            s.position === -1 &&
                            s.semaine === getWeekNumber(currentWeek) &&
                            s.annee === currentWeek.getFullYear();
+                           
+                    console.log('Vérification surveillance:', {
+                      jourSurveillance: surveillanceDay,
+                      jourRecherche: frenchDay,
+                      position: s.position,
+                      semaine: s.semaine,
+                      semaineActuelle: getWeekNumber(currentWeek),
+                      correspondance: matches
+                    });
+                    
+                    return matches;
                   }).sort((a, b) => a.ordre - b.ordre);
 
                   return (
@@ -1568,21 +1768,10 @@ function Planning() {
                                     className={`surveillance-cell ${snapshot.isDragging ? 'dragging' : ''}`}
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      setSelectedSurveillance(surveillance);
-                                      setNewSurveillance({
-                                        enseignant: surveillance.enseignant,
-                                        lieu: surveillance.lieu,
-                                        jour: jour,
-                                        position: -1,
-                                        zeitslot: uhrs[0]
-                                      });
-                                      setShowSurveillanceModal(true);
+                                      handleSurveillanceClick(surveillance, jour);
                                     }}
                                   >
-                                    <div className="surveillance-info">
-                                      <span>{surveillance.enseignant}</span>
-                                      {surveillance.lieu}
-                                    </div>
+                                    {renderSurveillance(surveillance)}
                                   </div>
                                 )}
                               </Draggable>
@@ -1859,9 +2048,12 @@ function Planning() {
                         </Box>
                       </TableCell>
                       {jours.map((jour) => {
+                        // Convertir le jour traduit en français pour la comparaison
+                        const frenchDay = convertToFrenchDay(jour);
+                        
                         const daySurveillances = surveillances.filter(s => {
                           const surveillanceDay = s.jour.split('-')[0];
-                          return surveillanceDay === jour && 
+                          return surveillanceDay === frenchDay && 
                                  s.position === index &&
                                  s.semaine === getWeekNumber(currentWeek) &&
                                  s.annee === currentWeek.getFullYear();
@@ -1902,21 +2094,10 @@ function Planning() {
                                           className={`surveillance-cell ${snapshot.isDragging ? 'dragging' : ''}`}
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            setSelectedSurveillance(surveillance);
-                                            setNewSurveillance({
-                                              enseignant: surveillance.enseignant,
-                                              lieu: surveillance.lieu,
-                                              jour: jour,
-                                              position: index,
-                                              zeitslot: uhr
-                                            });
-                                            setShowSurveillanceModal(true);
+                                            handleSurveillanceClick(surveillance, jour);
                                           }}
                                         >
-                                          <div className="surveillance-info">
-                                            <span>{surveillance.enseignant}</span>
-                                            {surveillance.lieu}
-                                          </div>
+                                          {renderSurveillance(surveillance)}
                                         </div>
                                       )}
                                     </Draggable>
@@ -1988,21 +2169,10 @@ function Planning() {
                                       className={`surveillance-cell ${snapshot.isDragging ? 'dragging' : ''}`}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        setSelectedSurveillance(surveillance);
-                                        setNewSurveillance({
-                                          enseignant: surveillance.enseignant,
-                                          lieu: surveillance.lieu,
-                                          jour: jour,
-                                          position: uhrs.length,
-                                          zeitslot: uhrs[uhrs.length - 1]
-                                        });
-                                        setShowSurveillanceModal(true);
+                                        handleSurveillanceClick(surveillance, jour);
                                       }}
                                     >
-                                      <div className="surveillance-info">
-                                        <span>{surveillance.enseignant}</span>
-                                        {surveillance.lieu}
-                                      </div>
+                                      {renderSurveillance(surveillance)}
                                     </div>
                                   )}
                                 </Draggable>
@@ -2044,75 +2214,81 @@ function Planning() {
                     {t('planning.annotations', 'Annotations')}
                   </Typography>
                 </TableCell>
-                {jours.map((jour, index) => (
-                  <TableCell 
-                    key={index} 
-                    align="center" 
-                    sx={{ 
-                      minWidth: '200px', 
-                      maxWidth: '300px',
-                      borderBottom: '1px solid #e0e0e0'
-                    }}
-                  >
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
-                      gap: 1,
-                      height: '100%'
-                    }}>
-                      {editingAnnotation === jour ? (
-                        <Box sx={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: 1,
-                          width: '100%'
-                        }}>
-                          <TextField
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                            multiline
-                            rows={2}
-                            value={annotations[convertToFrenchDay(jour)] || ''}
-                            onChange={(e) => handleAnnotationChange(jour, e.target.value)}
-                            onKeyPress={(e) => {
-                              if (e.key === 'Enter') {
-                                handleAnnotationSave(jour);
-                              }
+                {jours.map((jour, index) => {
+                  // Convertir le jour une seule fois pour éviter les appels multiples
+                  const frenchDay = jour ? convertToFrenchDay(jour) : null;
+                  const hasAnnotation = frenchDay && annotations[frenchDay];
+                  
+                  return (
+                    <TableCell 
+                      key={index} 
+                      align="center" 
+                      sx={{ 
+                        minWidth: '200px', 
+                        maxWidth: '300px',
+                        borderBottom: '1px solid #e0e0e0'
+                      }}
+                    >
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        gap: 1,
+                        height: '100%'
+                      }}>
+                        {editingAnnotation === jour ? (
+                          <Box sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: 1,
+                            width: '100%'
+                          }}>
+                            <TextField
+                              variant="outlined"
+                              size="small"
+                              fullWidth
+                              multiline
+                              rows={2}
+                              value={hasAnnotation || ''}
+                              onChange={(e) => handleAnnotationChange(jour, e.target.value)}
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleAnnotationSave(jour);
+                                }
+                              }}
+                              sx={annotationTextFieldStyle}
+                              placeholder={t('planning.addAnnotation', 'Ajouter une annotation...')}
+                            />
+                            <IconButton
+                              size="small"
+                              onClick={() => handleAnnotationSave(jour)}
+                              sx={annotationSaveButtonStyle}
+                            >
+                              <SaveIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        ) : (
+                          <Typography
+                            onClick={() => setEditingAnnotation(jour)}
+                            sx={{
+                              ...annotationStyle,
+                              width: '100%',
+                              minHeight: '60px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              color: hasAnnotation ? 'text.primary' : 'text.secondary',
+                              fontStyle: hasAnnotation ? 'normal' : 'italic'
                             }}
-                            sx={annotationTextFieldStyle}
-                            placeholder={t('planning.addAnnotation', 'Ajouter une annotation...')}
-                          />
-                          <IconButton
-                            size="small"
-                            onClick={() => handleAnnotationSave(jour)}
-                            sx={annotationSaveButtonStyle}
                           >
-                            <SaveIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      ) : (
-                        <Typography
-                          onClick={() => setEditingAnnotation(jour)}
-                          sx={{
-                            ...annotationStyle,
-                            width: '100%',
-                            minHeight: '60px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            color: annotations[convertToFrenchDay(jour)] ? 'text.primary' : 'text.secondary',
-                            fontStyle: annotations[convertToFrenchDay(jour)] ? 'normal' : 'italic'
-                          }}
-                        >
-                          {annotations[convertToFrenchDay(jour)] || t('planning.addAnnotation', 'Cliquez pour ajouter une annotation')}
-                        </Typography>
-                      )}
-                    </Box>
-                  </TableCell>
-                ))}
+                            {hasAnnotation || t('planning.addAnnotation', 'Cliquez pour ajouter une annotation')}
+                          </Typography>
+                        )}
+                      </Box>
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             </TableBody>
           </Table>

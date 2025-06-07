@@ -102,7 +102,19 @@
     "createdAt": "Created on",
     "selectedModel": "Selected template",
     "modelContains": "This template contains {{count}} courses from week {{week}} - {{year}}",
-    "applySelectedModel": "Apply template"
+    "applySelectedModel": "Apply template",
+    "surveillance": {
+      "add": "Add Supervision",
+      "edit": "Edit Supervision",
+      "delete": "Delete Supervision",
+      "confirmDelete": "Are you sure you want to delete this supervision?",
+      "teacher": "Teacher",
+      "location": "Location",
+      "added": "Supervision successfully added",
+      "updated": "Supervision successfully updated",
+      "deleted": "Supervision successfully deleted",
+      "addError": "Error adding supervision"
+    }
   },
   "auth": {
     "login": "Login",

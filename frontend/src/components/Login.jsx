@@ -64,43 +64,28 @@ function Login() {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Erreur de connexion');
-      }
-
-      // La réponse contient directement le token
-      if (data.token) {
-        // Stocker le token dans le localStorage
+      if (response.ok) {
         localStorage.setItem('token', data.token);
-        
-        // Rediriger vers le planning
+        setSuccess(t('auth.loginSuccess'));
         navigate('/planning');
       } else {
-        setError(data.message || 'Erreur de connexion');
+        setError(t('auth.loginError'));
       }
     } catch (err) {
-      setError(err.message || 'Erreur de connexion');
+      setError(t('auth.loginError'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box
+    <Box 
+      className="login-container"
       sx={{
-        width: '100vw',
-        height: '100vh',
-        position: 'fixed',
-        top: 0,
-        left: 0,
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#1976d2',
-        margin: 0,
-        padding: 0,
-        zIndex: 1000,
-        overflow: 'hidden'
+        flexDirection: 'column',
+        minHeight: '100vh',
+        position: 'relative'
       }}
     >
       <Box 
@@ -115,12 +100,12 @@ function Login() {
       </Box>
       
       <div className="login-box">
-        <h2>{t('auth.login', 'Connexion')}</h2>
+        <h2>{t('auth.login')}</h2>
         
         {needsSetup && (
           <div className="setup-message">
-            <p>{t('auth.noUsers', 'Aucun utilisateur trouvé dans la base de données. Veuillez créer un compte administrateur.')}</p>
-            <Link to="/initial-setup" className="setup-link">{t('auth.setupApp', 'Configurer l\'application')}</Link>
+            <p>{t('auth.noUsers')}</p>
+            <Link to="/initial-setup" className="setup-link">{t('auth.setupApp')}</Link>
           </div>
         )}
         
@@ -129,27 +114,27 @@ function Login() {
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">{t('auth.email', 'Email')}</label>
+            <label htmlFor="email">{t('auth.email')}</label>
             <input
               type="email"
               id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder={t('auth.yourEmail', 'Votre email')}
+              placeholder={t('auth.yourEmail')}
               required
               disabled={loading}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="password">{t('auth.password', 'Mot de passe')}</label>
+            <label htmlFor="password">{t('auth.password')}</label>
             <input
               type="password"
               id="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              placeholder={t('auth.yourPassword', 'Votre mot de passe')}
+              placeholder={t('auth.yourPassword')}
               required
               disabled={loading}
             />
@@ -159,11 +144,11 @@ function Login() {
             className="login-button"
             disabled={loading}
           >
-            {loading ? t('auth.loggingIn', 'Connexion...') : t('auth.login', 'Se connecter')}
+            {loading ? t('auth.loggingIn') : t('auth.login')}
           </button>
         </form>
         <div className="login-footer">
-          <a href="#" className="forgot-password">{t('auth.forgotPassword', 'Mot de passe oublié ?')}</a>
+          <a href="#" className="forgot-password">{t('auth.forgotPassword')}</a>
         </div>
       </div>
     </Box>

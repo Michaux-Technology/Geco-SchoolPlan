@@ -1,34 +1,18 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Box, Select, MenuItem, FormControl, InputLabel, useTheme } from '@mui/material';
-import i18n from '../i18n';
+import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
 function LanguageSwitcher() {
   const theme = useTheme();
   const location = useLocation();
+  const { t, i18n } = useTranslation();
   const isLoginPage = location.pathname === '/login';
-  
-  // Obtenir la fonction de traduction directement depuis l'instance i18n
-  const t = (key, defaultValue) => {
-    try {
-      return i18n.t(key) || defaultValue;
-    } catch (error) {
-      return defaultValue;
-    }
-  };
   
   const changeLanguage = (event) => {
     const language = event.target.value;
-    console.log('Changement de langue vers:', language);
     i18n.changeLanguage(language);
-    // Force localStorage update to ensure the language persists
-    localStorage.setItem('i18nextLng', language);
   };
-
-  useEffect(() => {
-    // Log current language on mount
-    console.log('Langue actuelle au chargement:', i18n.language, localStorage.getItem('i18nextLng'));
-  }, []);
 
   // Styles adaptés selon la page
   const labelColor = isLoginPage ? 'white' : 'white';
@@ -50,13 +34,13 @@ function LanguageSwitcher() {
             }
           }}
         >
-          {t('common.language', 'Langue')}
+          {t('common.language')}
         </InputLabel>
         <Select
           labelId="language-select-label"
           id="language-select"
-          value={i18n.language || 'fr'}
-          label={t('common.language', 'Langue')}
+          value={i18n.language}
+          label={t('common.language')}
           onChange={changeLanguage}
           sx={{
             color: textColor,

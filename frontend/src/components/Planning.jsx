@@ -62,34 +62,12 @@ function Planning() {
 
   // Jours traduits avec i18next
   const jours = [
-    t('planning.days.monday', 'Lundi'), 
-    t('planning.days.tuesday', 'Mardi'), 
-    t('planning.days.wednesday', 'Mercredi'), 
-    t('planning.days.thursday', 'Jeudi'), 
-    t('planning.days.friday', 'Vendredi')
+    t('planning.days.monday'), 
+    t('planning.days.tuesday'), 
+    t('planning.days.wednesday'), 
+    t('planning.days.thursday'), 
+    t('planning.days.friday')
   ];
-
-  // Définir un mapping entre les jours traduits et les jours en français
-  const jourMapping = {
-    // Français
-    'Lundi': 'Lundi',
-    'Mardi': 'Mardi',
-    'Mercredi': 'Mercredi',
-    'Jeudi': 'Jeudi',
-    'Vendredi': 'Vendredi',
-    // Anglais
-    'Monday': 'Lundi',
-    'Tuesday': 'Mardi',
-    'Wednesday': 'Mercredi',
-    'Thursday': 'Jeudi',
-    'Friday': 'Vendredi',
-    // Allemand
-    'Montag': 'Lundi',
-    'Dienstag': 'Mardi',
-    'Mittwoch': 'Mercredi',
-    'Donnerstag': 'Jeudi',
-    'Freitag': 'Vendredi'
-  };
 
   const [planning, setPlanning] = useState([]);
   const [surveillances, setSurveillances] = useState([]);
@@ -724,9 +702,10 @@ function Planning() {
   };
 
   const handleDragEnd = (result) => {
-
     const { source, destination, draggableId } = result;
     
+    if (!destination) return;
+
     // Vérifier si c'est une surveillance ou un cours
     const isSurveillance = surveillances.some(s => s._id === draggableId);
     
@@ -747,7 +726,7 @@ function Planning() {
 
       const updatedSurveillance = {
         ...surveillance,
-        jour: destinationDay,
+        jour: convertToFrenchDay(destinationDay),
         uhr: uhrs.find(u => u._id === destination.droppableId.split('-')[2])?._id,
         position: newPosition,
         before: newPosition === -1 ? true : false
@@ -757,17 +736,18 @@ function Planning() {
     } else {
       // Gestion des cours
       const coursToMove = cours.find(c => c._id === draggableId);
-
+      if (!coursToMove) return;
 
       const [sourceDay, sourceUhrId] = source.droppableId.split('-');
       const [destinationDay, destinationUhrId] = destination.droppableId.split('-');
 
       const destinationUhr = uhrs.find(u => u._id === destinationUhrId);
+      if (!destinationUhr) return;
 
       // S'assurer que les IDs des enseignants sont présents
       const updatedCours = {
         ...coursToMove,
-        jour: destinationDay,
+        jour: convertToFrenchDay(destinationDay),
         heure: `${destinationUhr.start} - ${destinationUhr.ende}`,
         uhr: destinationUhrId,
         enseignantsIds: coursToMove.enseignants?.map(enseignant => {
@@ -801,7 +781,17 @@ function Planning() {
 
   // Fonction pour convertir le jour traduit vers le format français pour la base de données
   const convertToFrenchDay = (translatedDay) => {
-    return jourMapping[translatedDay] || 'Lundi'; // Par défaut, retourne Lundi si non trouvé
+    // Obtenir les traductions des jours
+    const dayTranslations = {
+      [t('planning.days.monday')]: 'Lundi',
+      [t('planning.days.tuesday')]: 'Mardi',
+      [t('planning.days.wednesday')]: 'Mercredi',
+      [t('planning.days.thursday')]: 'Jeudi',
+      [t('planning.days.friday')]: 'Vendredi'
+    };
+
+    // Retourner le jour en français correspondant à la traduction
+    return dayTranslations[translatedDay] || 'Lundi';
   };
 
   const handleSubmitModal = () => {
@@ -877,18 +867,16 @@ function Planning() {
 
   // Fonction pour convertir le jour français vers le jour traduit dans l'interface
   const convertFromFrenchDay = (frenchDay) => {
-    // Obtenir la langue actuelle 
-    const currentLanguage = i18n.language || 'fr';
+    const dayKeys = {
+      'Lundi': 'planning.days.monday',
+      'Mardi': 'planning.days.tuesday',
+      'Mercredi': 'planning.days.wednesday',
+      'Jeudi': 'planning.days.thursday',
+      'Vendredi': 'planning.days.friday'
+    };
     
-    // Utiliser des clés de traduction directes pour garantir les bonnes traductions
-    if (frenchDay === 'Lundi') return t('planning.days.monday');
-    if (frenchDay === 'Mardi') return t('planning.days.tuesday');
-    if (frenchDay === 'Mercredi') return t('planning.days.wednesday');
-    if (frenchDay === 'Jeudi') return t('planning.days.thursday');
-    if (frenchDay === 'Vendredi') return t('planning.days.friday');
-    
-    // Par défaut, retourne le jour en français
-    return frenchDay;
+    // Utiliser la clé de traduction correspondante
+    return t(dayKeys[frenchDay] || dayKeys['Lundi']);
   };
 
   // Modification de la fonction getCoursForCell pour utiliser les bonnes propriétés d'heure

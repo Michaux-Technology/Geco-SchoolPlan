@@ -21,7 +21,10 @@ import {
   CartesianGrid, 
   Tooltip, 
   Legend, 
-  ResponsiveContainer
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Cell
 } from 'recharts';
 import io from 'socket.io-client';
 
@@ -30,6 +33,30 @@ const socket = io('http://localhost:5000');
 
 // Tableau de couleurs pour les différentes lignes du graphique
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'];
+
+// Tableau de couleurs pour les barres
+const SUBJECT_COLORS = [
+  '#8884d8', // violet
+  '#82ca9d', // vert
+  '#ffc658', // jaune
+  '#ff8042', // orange
+  '#0088FE', // bleu
+  '#00C49F', // turquoise
+  '#FFBB28', // jaune foncé
+  '#FF8042', // orange foncé
+  '#a4de6c', // vert clair
+  '#d0ed57', // lime
+  '#8dd1e1', // bleu clair
+  '#e6b600', // or
+  '#6b486b', // violet foncé
+  '#98abc5', // bleu gris
+  '#ff9896', // rose
+  '#7f7f7f', // gris
+  '#c5b0d5', // lavande
+  '#c49c94', // marron clair
+  '#f7b6d2', // rose clair
+  '#dbdb8d'  // olive
+];
 
 const Statistiques = () => {
   const { t } = useTranslation();
@@ -48,29 +75,57 @@ const Statistiques = () => {
   const [moisSelectionne, setMoisSelectionne] = useState(new Date().getMonth() + 1); // 1-12
   const [anneeSelectionnee, setAnneeSelectionnee] = useState(new Date().getFullYear());
 
+  // Ajouter les nouveaux états pour le graphique des matières
+  const [selectedClasse, setSelectedClasse] = useState('');
+  const [matiereStats, setMatiereStats] = useState([]);
+  const [classes, setClasses] = useState([]);
+
   useEffect(() => {
     // Charger les enseignants et les cours depuis le serveur
     setLoading(true);
+    let enseignantsReceived = false;
+    let coursReceived = false;
+    let classesReceived = false;
+    
     socket.emit('getEnseignants');
     socket.emit('getCours');
+    socket.emit('getClasses');
     
     // Écouteurs pour les données reçues
     socket.on('enseignantsUpdate', (data) => {
       setEnseignants(data);
+      enseignantsReceived = true;
+      if (coursReceived) {
+        setLoading(false);
+      }
     });
 
     socket.on('coursUpdate', (data) => {
       setCours(data);
+      coursReceived = true;
+      if (enseignantsReceived) {
+        setLoading(false);
+      }
+    });
+
+    socket.on('classesUpdate', (data) => {
+      setClasses(data);
+      classesReceived = true;
+      if (enseignantsReceived && coursReceived) {
+        setLoading(false);
+      }
     });
 
     socket.on('error', (error) => {
       setError(error);
+      setLoading(false);
     });
 
     // Nettoyer les écouteurs
     return () => {
       socket.off('enseignantsUpdate');
       socket.off('coursUpdate');
+      socket.off('classesUpdate');
       socket.off('error');
     };
   }, []);
@@ -377,6 +432,52 @@ const Statistiques = () => {
     }));
   };
 
+  // Fonction pour calculer les statistiques des matières
+  const calculerStatistiquesMatiere = () => {
+    if (!selectedClasse || !cours || cours.length === 0) {
+      setMatiereStats([]);
+      return;
+    }
+
+    // Filtrer les cours pour la classe sélectionnée et la période
+    const coursFiltres = cours.filter(cours => {
+      if (cours.annule || !cours.classe) return false;
+      
+      const appartientPeriode = periode === 'mois' 
+        ? semaineAppartientAuMois(cours.semaine, moisSelectionne)
+        : periode === 'annee'
+          ? (cours.annee || new Date().getFullYear()) === anneeSelectionnee
+          : true;
+      
+      return cours.classe === selectedClasse && appartientPeriode;
+    });
+
+    // Calculer le nombre d'heures par matière
+    const heuresParMatiere = {};
+    coursFiltres.forEach(cours => {
+      if (!heuresParMatiere[cours.matiere]) {
+        heuresParMatiere[cours.matiere] = 0;
+      }
+      heuresParMatiere[cours.matiere] += 1;
+    });
+
+    // Convertir en format pour le graphique avec les couleurs
+    const statsData = Object.entries(heuresParMatiere).map(([matiere, heures], index) => ({
+      matiere,
+      heures,
+      fill: SUBJECT_COLORS[index % SUBJECT_COLORS.length] // Assigner une couleur cycliquement
+    }));
+
+    // Trier par nombre d'heures décroissant
+    statsData.sort((a, b) => b.heures - a.heures);
+    setMatiereStats(statsData);
+  };
+
+  // Mettre à jour les stats quand la classe ou la période change
+  useEffect(() => {
+    calculerStatistiquesMatiere();
+  }, [selectedClasse, cours, periode, moisSelectionne, anneeSelectionnee]);
+
   return (
     <Box sx={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
       <Box sx={{ 
@@ -473,6 +574,158 @@ const Statistiques = () => {
             
             <Box sx={{ height: 500, width: '100%' }}>
               {renderGraph()}
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+
+      {/* Nouveau graphique des matières */}
+      <Box sx={{ width: '100%', mb: 3, mt: 4 }}>
+        <Card elevation={3} sx={{ width: '100%', borderRadius: 0 }}>
+          <CardHeader 
+            title={t('statistics.coursesBySubject')} 
+            sx={{ 
+              backgroundColor: 'primary.light', 
+              color: 'white',
+              p: 2
+            }}
+          />
+          <CardContent sx={{ p: 2 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              mb: 2,
+              gap: 2,
+              flexWrap: 'wrap'
+            }}>
+              <FormControl sx={{ minWidth: 200 }}>
+                <InputLabel>{t('statistics.selectClass')}</InputLabel>
+                <Select
+                  value={selectedClasse}
+                  onChange={(e) => setSelectedClasse(e.target.value)}
+                  label={t('statistics.selectClass')}
+                >
+                  <MenuItem value="">{t('common.none')}</MenuItem>
+                  {classes.map((classe) => (
+                    <MenuItem key={classe._id} value={classe.nom}>
+                      {classe.nom}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Réutiliser les sélecteurs de période existants */}
+              <FormControl sx={{ minWidth: 150 }}>
+                <InputLabel>{t('statistics.period')}</InputLabel>
+                <Select
+                  value={periode}
+                  onChange={handlePeriodeChange}
+                  label={t('statistics.period')}
+                >
+                  <MenuItem value="semaine">{t('statistics.week')}</MenuItem>
+                  <MenuItem value="mois">{t('statistics.month')}</MenuItem>
+                  <MenuItem value="annee">{t('statistics.year')}</MenuItem>
+                </Select>
+              </FormControl>
+
+              {periode === 'mois' && (
+                <FormControl sx={{ minWidth: 150 }}>
+                  <InputLabel>{t('statistics.selectMonth')}</InputLabel>
+                  <Select
+                    value={moisSelectionne}
+                    onChange={handleMoisChange}
+                    label={t('statistics.selectMonth')}
+                  >
+                    {getMoisItems()}
+                  </Select>
+                </FormControl>
+              )}
+
+              {periode === 'annee' && (
+                <FormControl sx={{ minWidth: 150 }}>
+                  <InputLabel>{t('statistics.selectYear')}</InputLabel>
+                  <Select
+                    value={anneeSelectionnee}
+                    onChange={handleAnneeChange}
+                    label={t('statistics.selectYear')}
+                  >
+                    {getAnneeItems()}
+                  </Select>
+                </FormControl>
+              )}
+            </Box>
+            
+            <Box sx={{ height: 400, width: '100%' }}>
+              {loading ? (
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center',
+                  height: '100%'
+                }}>
+                  <Typography>{t('common.loading')}</Typography>
+                </Box>
+              ) : matiereStats.length === 0 ? (
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center',
+                  height: '100%'
+                }}>
+                  <Typography>{t('statistics.noDataAvailable')}</Typography>
+                </Box>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={matiereStats}
+                    margin={{
+                      top: 20,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="matiere" 
+                      label={{ 
+                        value: t('statistics.subjects'), 
+                        position: 'insideBottomRight', 
+                        offset: -10 
+                      }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={100}
+                    />
+                    <YAxis
+                      label={{ 
+                        value: t('statistics.numberOfHours'), 
+                        angle: -90, 
+                        position: 'insideLeft',
+                        offset: -5
+                      }}
+                    />
+                    <Tooltip
+                      formatter={(value, name, props) => [
+                        `${value} ${t('statistics.hours')}`,
+                        props.payload.matiere
+                      ]}
+                      labelFormatter={(value) => t('statistics.subject')}
+                    />
+                    <Legend />
+                    <Bar 
+                      dataKey="heures" 
+                      name={t('statistics.numberOfHours')}
+                    >
+                      {
+                        matiereStats.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))
+                      }
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </Box>
           </CardContent>
         </Card>

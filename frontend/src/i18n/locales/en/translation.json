@@ -59,7 +59,7 @@
     "replaced": "Replaced",
     "courseCancelled": "Course cancelled",
     "clickToAddAnnotation": "Click to add an annotation...",
-    "addAnnotation": "Add an annotation...",
+    "addAnnotation": "Add an annotation... (Ctrl+Enter to save)",
     "annotations": "Annotations",
     "viewCourse": "View course",
     "editTimeSlot": "Edit time slot",

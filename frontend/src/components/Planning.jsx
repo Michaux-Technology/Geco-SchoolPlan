@@ -1125,21 +1125,27 @@ function Planning() {
   const handleAnnotationSave = (jour) => {
     const frenchDay = convertToFrenchDay(jour);
     if (socket.current) {
-      socket.current.emit('saveAnnotation', {
+      const data = {
         jour: frenchDay,
         annotation: annotations[frenchDay],
         semaine: getWeekNumber(currentWeek),
-        date: currentWeek
-      });
-      setEditingAnnotation(null);
+        date: currentWeek,
+        annee: currentWeek.getFullYear()
+      };
 
-      // Attendre un court délai pour s'assurer que la sauvegarde est terminée
-      setTimeout(() => {
-        socket.current.emit('getAnnotations', {
-          semaine: getWeekNumber(currentWeek),
-          annee: currentWeek.getFullYear()
-        });
-      }, 500);
+      // Ajouter des écouteurs pour les réponses du serveur
+      socket.current.once('annotationsUpdate', (updatedAnnotations) => {
+        setAnnotations(updatedAnnotations);
+        enqueueSnackbar(t('planning.annotationSaved', 'Annotation sauvegardée'), { variant: 'success' });
+      });
+
+      socket.current.once('annotationError', (error) => {
+        console.error('Erreur lors de la sauvegarde de l\'annotation:', error);
+        enqueueSnackbar(t('planning.annotationError', 'Erreur lors de la sauvegarde de l\'annotation'), { variant: 'error' });
+      });
+
+      socket.current.emit('saveAnnotation', data);
+      setEditingAnnotation(null);
     }
   };
 
@@ -2251,8 +2257,9 @@ function Planning() {
                               rows={2}
                               value={hasAnnotation || ''}
                               onChange={(e) => handleAnnotationChange(jour, e.target.value)}
-                              onKeyPress={(e) => {
-                                if (e.key === 'Enter') {
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' && e.ctrlKey) {
+                                  e.preventDefault();
                                   handleAnnotationSave(jour);
                                 }
                               }}
@@ -2279,7 +2286,11 @@ function Planning() {
                               justifyContent: 'center',
                               cursor: 'pointer',
                               color: hasAnnotation ? 'text.primary' : 'text.secondary',
-                              fontStyle: hasAnnotation ? 'normal' : 'italic'
+                              fontStyle: hasAnnotation ? 'normal' : 'italic',
+                              whiteSpace: 'pre-wrap',
+                              wordBreak: 'break-word',
+                              textAlign: 'left',
+                              padding: '8px'
                             }}
                           >
                             {hasAnnotation || t('planning.addAnnotation', 'Cliquez pour ajouter une annotation')}

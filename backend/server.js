@@ -921,20 +921,26 @@ io.on('connection', (socket) => {
   // Routes pour les annotations
   socket.on('saveAnnotation', async (data) => {
     try {
-      const { jour, annotation, semaine, date } = data;
+      const { jour, annotation, semaine, date, annee } = data;
       
+      if (!jour || !semaine || !date || !annee) {
+        throw new Error('Données manquantes pour la sauvegarde de l\'annotation');
+      }
+
       // Normaliser le format du jour
       const normalizedJour = jour.charAt(0).toUpperCase() + jour.slice(1).toLowerCase();
       
-      // Rechercher une annotation existante pour ce jour et cette date
+      // Rechercher une annotation existante pour ce jour et cette semaine
       let existingAnnotation = await Annotation.findOne({ 
         jour: normalizedJour, 
-        date: new Date(date)
+        semaine: semaine,
+        annee: annee
       });
 
       if (existingAnnotation) {
         // Mettre à jour l'annotation existante
         existingAnnotation.annotation = annotation;
+        existingAnnotation.date = new Date(date);
         await existingAnnotation.save();
       } else {
         // Créer une nouvelle annotation
@@ -942,21 +948,15 @@ io.on('connection', (socket) => {
           jour: normalizedJour, 
           annotation, 
           semaine,
+          annee,
           date: new Date(date)
         });
       }
       
       // Récupérer toutes les annotations pour la semaine actuelle
-      const startOfWeek = new Date(date);
-      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1); // Début de la semaine (Lundi)
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(endOfWeek.getDate() + 4); // Fin de la semaine (Vendredi)
-
       const annotations = await Annotation.find({
-        date: {
-          $gte: startOfWeek,
-          $lte: endOfWeek
-        }
+        semaine: semaine,
+        annee: annee
       });
       
       const annotationsMap = {};

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
+const jwt = require('jsonwebtoken');
 const authRoutes = require('./routes/auth');
 const Planning = require('./models/Planning');
 const Uhr = require('./models/Uhr');
@@ -14,6 +15,44 @@ const Salle = require('./models/Salle');
 const Cours = require('./models/Cours');
 const Annotation = require('./models/Annotation');
 require('dotenv').config();
+
+// Configuration JWT et utilisateurs par défaut
+const JWT_SECRET = process.env.JWT_SECRET || 'votre_secret_jwt';
+const defaultUsers = [
+  {
+    username: 'enseignant',
+    password: '1234',
+    role: 'enseignant'
+  },
+  {
+    username: 'eleve',
+    password: '1234',
+    role: 'eleve'
+  }
+];
+
+// Stockage des tentatives de connexion
+const loginAttempts = new Map();
+const MAX_LOGIN_ATTEMPTS = 10;
+const BLOCK_DURATION = 15 * 60 * 1000; // 15 minutes
+
+// Middleware de vérification des tentatives de connexion
+const checkLoginAttempts = (req, res, next) => {
+  const ip = req.ip;
+  const attempts = loginAttempts.get(ip) || { count: 0, lastAttempt: 0 };
+  if (attempts.count >= MAX_LOGIN_ATTEMPTS) {
+    const timeSinceLastAttempt = Date.now() - attempts.lastAttempt;
+    if (timeSinceLastAttempt < BLOCK_DURATION) {
+      const remainingTime = Math.ceil((BLOCK_DURATION - timeSinceLastAttempt) / 1000 / 60);
+      return res.status(429).json({
+        message: `Trop de tentatives de connexion. Veuillez réessayer dans ${remainingTime} minutes.`
+      });
+    } else {
+      loginAttempts.delete(ip);
+    }
+  }
+  next();
+};
 
 // Fonction pour obtenir le numéro de la semaine
 function getWeekNumber(date) {
@@ -1069,4 +1108,72 @@ app.post('/api/surveillances', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// Routes pour l'API mobile
+app.post('/api/mobile/login', checkLoginAttempts, (req, res) => {
+  const { username, password } = req.body;
+
+  // Vérifier si l'utilisateur existe
+  const user = defaultUsers.find(u => u.username === username);
+  
+  if (!user) {
+    // Incrémenter le compteur de tentatives
+    const ip = req.ip;
+    const attempts = loginAttempts.get(ip) || { count: 0, lastAttempt: 0 };
+    attempts.count += 1;
+    attempts.lastAttempt = Date.now();
+    loginAttempts.set(ip, attempts);
+    
+    return res.status(401).json({ message: 'Identifiants invalides' });
+  }
+
+  // Vérifier le mot de passe
+  if (user.password !== password) {
+    // Incrémenter le compteur de tentatives
+    const ip = req.ip;
+    const attempts = loginAttempts.get(ip) || { count: 0, lastAttempt: 0 };
+    attempts.count += 1;
+    attempts.lastAttempt = Date.now();
+    loginAttempts.set(ip, attempts);
+    
+    return res.status(401).json({ message: 'Identifiants invalides' });
+  }
+
+  // Réinitialiser les tentatives de connexion
+  loginAttempts.delete(req.ip);
+
+  // Générer le token JWT
+  const tokenPayload = {
+    username: user.username,
+    role: user.role,
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 heures
+  };
+
+  try {
+    const token = jwt.sign(tokenPayload, JWT_SECRET);
+    
+    console.log('Token généré avec succès:', {
+      username: user.username,
+      role: user.role,
+      tokenPreview: `${token.substring(0, 20)}...`
+    });
+
+    res.json({ 
+      token, 
+      user: { 
+        username: user.username, 
+        role: user.role 
+      } 
+    });
+  } catch (error) {
+    console.error('Erreur lors de la génération du token:', error);
+    res.status(500).json({ message: 'Erreur lors de la génération du token' });
+  }
+});
+
+// Route pour vérifier l'état du serveur
+app.get('/api/mobile/status', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 }); 

@@ -48,7 +48,7 @@ npm install
 MONGODB_URI=votre_uri_mongodb
 // Exemple : MONGODB_URI=mongodb://192.168.1.104:27017/Geco-SchoolPlan
 JWT_SECRET=votre_secret_jwt
-PORT=5001
+PORT=5000
 ```
 
 ## Démarrage

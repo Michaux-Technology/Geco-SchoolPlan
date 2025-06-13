@@ -220,13 +220,22 @@
     "invalidTimeFormat": "Ungültiges Zeitformat. Verwenden Sie das Format HH:MM - HH:MM"
   },
   "statistics": {
+    "title": "Statistiken",
     "comingSoon": "Diese Funktion wird in Kürze verfügbar sein.",
     "period": "Zeitraum",
     "week": "Woche",
     "month": "Monat",
     "year": "Jahr",
     "coursesBySubject": "Kurse nach Fach",
-    "coursesByDay": "Kurse nach Tag",
+    "coursesBySubjectDescription": "Anzahl der Kurse nach Fach",
+    "coursesByTeacher": "Kurse nach Lehrer",
+    "coursesByTeacherDescription": "Anzahl der Kurse nach Lehrer",
+    "subject": "Fach",
+    "teacher": "Lehrer",
+    "teachers": "Lehrer",
+    "courses": "Kurse",
+    "class": "Klasse",
+    "allClasses": "Alle Klassen",
     "roomUsage": "Raumnutzungsrate",
     "numberOfCourses": "Anzahl der Kurse",
     "utilizationPercentage": "Nutzungsrate (%)",
@@ -239,11 +248,10 @@
     "noDataAvailable": "Keine Daten für diesen Lehrer verfügbar",
     "teacherCourses": "Anzahl der Kurse pro Lehrer",
     "numberCourses": "Anzahl der Kurse",
-    "courses": "kurse",
     "selectMonth": "Monat auswählen",
     "selectYear": "Jahr auswählen",
-    "teacher": "Lehrer",
-    "noData": "Keine Daten verfügbar"
+    "noData": "Keine Daten verfügbar",
+    "teacherHours": "Unterrichtsstunden pro Lehrer"
   },
   "months": {
     "january": "Januar",

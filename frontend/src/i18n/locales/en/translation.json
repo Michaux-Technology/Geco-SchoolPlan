@@ -220,13 +220,22 @@
     "invalidTimeFormat": "Invalid time format. Use HH:MM - HH:MM format"
   },
   "statistics": {
+    "title": "Statistics",
     "comingSoon": "This feature will be available soon.",
     "period": "Period",
     "week": "Week",
     "month": "Month",
     "year": "Year",
-    "coursesBySubject": "Courses by Subject",
-    "coursesByDay": "Courses by Day",
+    "coursesBySubject": "Courses by subject",
+    "coursesBySubjectDescription": "Number of courses taught by subject",
+    "coursesByTeacher": "Courses by teacher",
+    "coursesByTeacherDescription": "Number of courses taught by teacher",
+    "subject": "Subject",
+    "teacher": "Teacher",
+    "teachers": "Teachers",
+    "courses": "Courses",
+    "class": "Class",
+    "allClasses": "All classes",
     "roomUsage": "Room Utilization Rate",
     "numberOfCourses": "Number of Courses",
     "utilizationPercentage": "Utilization Rate (%)",
@@ -239,10 +248,9 @@
     "noDataAvailable": "No data available",
     "teacherCourses": "Number of Courses Taught by Teacher",
     "numberCourses": "Number of Courses",
-    "courses": "courses",
     "selectMonth": "Select Month",
     "selectYear": "Select Year",
-    "teacher": "Teacher"
+    "teacherHours": "Teaching hours by teacher"
   },
   "months": {
     "january": "January",

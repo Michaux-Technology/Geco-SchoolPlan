@@ -11,7 +11,8 @@ import {
   InputLabel,
   Select,
   Chip,
-  OutlinedInput
+  OutlinedInput,
+  Grid
 } from '@mui/material';
 import { 
   LineChart, 
@@ -66,6 +67,7 @@ const Statistiques = () => {
   const [cours, setCours] = useState([]);
   const [selectedEnseignants, setSelectedEnseignants] = useState([]);
   const [coursParPeriode, setCoursParPeriode] = useState([]);
+  const [coursParMatiere, setCoursParMatiere] = useState([]);
   const [loading, setLoading] = useState(true);
   const [enseignantsCourbes, setEnseignantsCourbes] = useState({});
   const [error, setError] = useState(null);
@@ -79,6 +81,27 @@ const Statistiques = () => {
   const [selectedClasse, setSelectedClasse] = useState('');
   const [matiereStats, setMatiereStats] = useState([]);
   const [classes, setClasses] = useState([]);
+
+  // Palette de couleurs pour les barres
+  const barColors = [
+    '#FF6B6B', // Rouge corail
+    '#4ECDC4', // Turquoise
+    '#45B7D1', // Bleu ciel
+    '#96CEB4', // Vert menthe
+    '#FFEEAD', // Jaune pâle
+    '#D4A5A5', // Rose poudré
+    '#9B59B6', // Violet
+    '#3498DB', // Bleu
+    '#E67E22', // Orange
+    '#2ECC71', // Vert émeraude
+    '#F1C40F', // Jaune
+    '#1ABC9C', // Turquoise foncé
+  ];
+
+  // Fonction pour obtenir une couleur aléatoire de la palette
+  const getRandomColor = (index) => {
+    return barColors[index % barColors.length];
+  };
 
   useEffect(() => {
     // Charger les enseignants et les cours depuis le serveur
@@ -146,92 +169,50 @@ const Statistiques = () => {
   const calculerCoursDispenses = (enseignantsList, coursData = cours, periodeActuelle = periode) => {
     if (!coursData || coursData.length === 0 || !enseignantsList || enseignantsList.length === 0) {
       setCoursParPeriode([]);
-      setEnseignantsCourbes({});
       return;
     }
 
-    // Stocker les données de tous les enseignants
-    const enseignantsData = {};
-    
-    // Calculer les données pour chaque enseignant
-    enseignantsList.forEach(nomCompletEnseignant => {
+    // Créer le tableau de données pour le graphique
+    const donnees = enseignantsList.map(nomCompletEnseignant => {
       const [nom, prenom] = nomCompletEnseignant.split(' ');
       
       // Filtrer les cours par enseignant et exclure les cours annulés
-      const coursDeLEnseignant = coursData.filter(cours => {
+      let coursDeLEnseignant = coursData.filter(cours => {
         if (!cours.enseignants || cours.annule) return false;
         return cours.enseignants.some(e => e.nom === nom);
       });
       
       // Filtrer par période si nécessaire
-      let coursFiltres = coursDeLEnseignant;
-      
       if (periodeActuelle === 'mois') {
         // Filtrer les cours du mois sélectionné
-        coursFiltres = coursDeLEnseignant.filter(cours => 
+        coursDeLEnseignant = coursDeLEnseignant.filter(cours => 
           semaineAppartientAuMois(cours.semaine, moisSelectionne)
         );
       } else if (periodeActuelle === 'annee') {
         // Filtrer les cours de l'année sélectionnée
-        coursFiltres = coursDeLEnseignant.filter(cours => 
+        coursDeLEnseignant = coursDeLEnseignant.filter(cours => 
           (cours.annee || new Date().getFullYear()) === anneeSelectionnee
         );
       }
       
-      // Regrouper par semaine
-      const coursParSemaine = {};
+      // Calculer le nombre total d'heures de cours
+      const totalHeures = coursDeLEnseignant.length;
       
-      coursFiltres.forEach(cours => {
-        const semaine = cours.semaine;
-        
-        if (!coursParSemaine[semaine]) {
-          coursParSemaine[semaine] = 0;
-        }
-        
-        coursParSemaine[semaine] += 1;
-      });
-      
-      // Stocker les données de cet enseignant
-      enseignantsData[nomCompletEnseignant] = coursParSemaine;
-    });
-    
-    // Collecter toutes les semaines uniques de tous les enseignants
-    const toutesLesSemaines = new Set();
-    Object.values(enseignantsData).forEach(data => {
-      Object.keys(data).forEach(semaine => {
-        toutesLesSemaines.add(parseInt(semaine));
-      });
-    });
-    
-    // Trier les semaines
-    const semainesTriees = [...toutesLesSemaines].sort((a, b) => a - b);
-    
-    // Créer le tableau de données pour le graphique
-    const donnees = semainesTriees.map(semaine => {
-      const point = {
-        semaine: semaine,
-        label: `${t('statistics.week')} ${semaine}`
+      return {
+        name: nomCompletEnseignant,
+        value: totalHeures
       };
-      
-      // Ajouter les données de chaque enseignant
-      Object.keys(enseignantsData).forEach(nomEnseignant => {
-        const coursCount = enseignantsData[nomEnseignant][semaine] || 0;
-        point[nomEnseignant] = coursCount;
-      });
-      
-      return point;
     });
     
-    setCoursParPeriode(donnees.length > 0 ? donnees : []);
-    setEnseignantsCourbes(enseignantsData);
+    setCoursParPeriode(donnees);
   };
 
+  // Mettre à jour les cours par enseignant quand les filtres changent
   useEffect(() => {
     if (selectedEnseignants.length > 0 && cours.length > 0) {
       calculerCoursDispenses(selectedEnseignants, cours, periode);
     } else {
       setCoursParPeriode([]);
-      setEnseignantsCourbes({});
     }
   }, [selectedEnseignants, cours, periode, moisSelectionne, anneeSelectionnee]);
 
@@ -357,9 +338,9 @@ const Statistiques = () => {
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
-            dataKey="semaine" 
+            dataKey="name" 
             label={{ 
-              value: t('statistics.week'), 
+              value: t('statistics.teacher'), 
               position: 'insideBottomRight', 
               offset: -10 
             }} 
@@ -369,12 +350,12 @@ const Statistiques = () => {
               value: t('statistics.courses'), 
               angle: -90, 
               position: 'insideLeft', 
-              offset: -5 
+              offset: 0 
             }} 
           />
           <Tooltip 
             formatter={(value, name) => [`${value} ${t('statistics.courses')}`, name]}
-            labelFormatter={(label) => `${t('statistics.week')} ${label}`}
+            labelFormatter={(label) => `${t('statistics.teacher')} ${label}`}
           />
           <Legend />
           {selectedEnseignants.map((enseignant, index) => (
@@ -478,255 +459,320 @@ const Statistiques = () => {
     calculerStatistiquesMatiere();
   }, [selectedClasse, cours, periode, moisSelectionne, anneeSelectionnee]);
 
+  // Fonction pour calculer les cours par matière
+  const calculerCoursParMatiere = (coursData = cours, periodeActuelle = periode) => {
+    if (!coursData || coursData.length === 0) {
+      setCoursParMatiere([]);
+      return;
+    }
+
+    // Filtrer les cours par période si nécessaire
+    let coursFiltres = coursData.filter(cours => !cours.annule);
+    
+    if (periodeActuelle === 'mois') {
+      coursFiltres = coursFiltres.filter(cours => 
+        semaineAppartientAuMois(cours.semaine, moisSelectionne)
+      );
+    } else if (periodeActuelle === 'annee') {
+      coursFiltres = coursFiltres.filter(cours => 
+        (cours.annee || new Date().getFullYear()) === anneeSelectionnee
+      );
+    }
+
+    // Filtrer par classe si une classe est sélectionnée
+    if (selectedClasse) {
+      coursFiltres = coursFiltres.filter(cours => cours.classe === selectedClasse);
+    }
+
+    // Regrouper les cours par matière
+    const coursParMatiereMap = {};
+    coursFiltres.forEach(cours => {
+      if (!cours.matiere) return;
+      
+      if (!coursParMatiereMap[cours.matiere]) {
+        coursParMatiereMap[cours.matiere] = 0;
+      }
+      coursParMatiereMap[cours.matiere]++;
+    });
+
+    // Convertir en tableau pour le graphique
+    const donnees = Object.entries(coursParMatiereMap).map(([matiere, count]) => ({
+      name: matiere,
+      value: count
+    }));
+
+    setCoursParMatiere(donnees);
+  };
+
+  // Mettre à jour les cours par matière quand les filtres changent
+  useEffect(() => {
+    if (cours.length > 0) {
+      calculerCoursParMatiere(cours, periode);
+    }
+  }, [cours, periode, moisSelectionne, anneeSelectionnee, selectedClasse]);
+
   return (
     <Box sx={{ width: '100%', maxWidth: '100%', overflow: 'hidden' }}>
       <Box sx={{ 
         display: 'flex', 
-        justifyContent: 'space-between', 
-        mb: 2,
-        width: '100%',
-        px: 3,
-        alignItems: 'center'
+        flexDirection: 'column',
+        gap: 4,
+        p: 3
       }}>
-        <Typography variant="h5" color="primary" sx={{ mt: 2, mb: 3 }}>
-          {t('navigation.statistics')}
+        <Typography variant="h4" gutterBottom>
+          {t('statistics.title')}
         </Typography>
-      </Box>
 
-      {/* Graphique des cours dispensés par un enseignant */}
-      <Box sx={{ width: '100%', mb: 3 }}>
-        <Card elevation={3} sx={{ width: '100%', borderRadius: 0 }}>
-          <CardHeader 
-            title={getGraphTitle()} 
-            sx={{ 
-              backgroundColor: 'primary.light', 
-              color: 'white',
-              p: 2
-            }}
-          />
-          <CardContent sx={{ p: 2 }}>
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'flex-end', 
-              mb: 2,
-              gap: 2,
-              flexWrap: 'wrap'
-            }}>
-              <FormControl sx={{ minWidth: 300, maxWidth: 600 }}>
-                <InputLabel>{t('statistics.selectTeachers')}</InputLabel>
-                <Select
-                  multiple
-                  value={selectedEnseignants}
-                  onChange={handleEnseignantsChange}
-                  input={<OutlinedInput id="select-multiple-teachers" label={t('statistics.selectTeachers')} />}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((value) => (
-                        <Chip key={value} label={value} />
+        {/* Graphique des cours par matière */}
+        <Card>
+          <CardHeader
+            title={t('statistics.coursesBySubject')}
+            subheader={t('statistics.coursesBySubjectDescription')}
+            action={
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <FormControl size="small" sx={{ minWidth: 200 }}>
+                  <InputLabel>{t('statistics.class')}</InputLabel>
+                  <Select
+                    value={selectedClasse}
+                    onChange={(e) => setSelectedClasse(e.target.value)}
+                    label={t('statistics.class')}
+                  >
+                    <MenuItem value="">{t('statistics.allClasses')}</MenuItem>
+                    {classes.map((classe) => (
+                      <MenuItem key={classe._id} value={classe._id}>
+                        {classe.nom}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel>{t('statistics.period')}</InputLabel>
+                  <Select
+                    value={periode}
+                    onChange={(e) => setPeriode(e.target.value)}
+                    label={t('statistics.period')}
+                  >
+                    <MenuItem value="semaine">{t('statistics.week')}</MenuItem>
+                    <MenuItem value="mois">{t('statistics.month')}</MenuItem>
+                    <MenuItem value="annee">{t('statistics.year')}</MenuItem>
+                  </Select>
+                </FormControl>
+                {periode === 'mois' && (
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>{t('statistics.month')}</InputLabel>
+                    <Select
+                      value={moisSelectionne}
+                      onChange={(e) => setMoisSelectionne(e.target.value)}
+                      label={t('statistics.month')}
+                    >
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <MenuItem key={i + 1} value={i + 1}>
+                          {new Date(2000, i).toLocaleString(i18n.language, { month: 'long' })}
+                        </MenuItem>
                       ))}
-                    </Box>
-                  )}
-                  disabled={loading || enseignants.length === 0}
+                    </Select>
+                  </FormControl>
+                )}
+                {periode === 'annee' && (
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>{t('statistics.year')}</InputLabel>
+                    <Select
+                      value={anneeSelectionnee}
+                      onChange={(e) => setAnneeSelectionnee(e.target.value)}
+                      label={t('statistics.year')}
+                    >
+                      {Array.from({ length: 5 }, (_, i) => {
+                        const year = new Date().getFullYear() - 2 + i;
+                        return (
+                          <MenuItem key={year} value={year}>
+                            {year}
+                          </MenuItem>
+                        );
+                      })}
+                    </Select>
+                  </FormControl>
+                )}
+              </Box>
+            }
+          />
+          <CardContent>
+            {coursParMatiere.length > 0 ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart
+                  height={400}
+                  data={coursParMatiere}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                 >
-                  {getEnseignantItems()}
-                </Select>
-              </FormControl>
-
-              <FormControl sx={{ minWidth: 150 }}>
-                <InputLabel>{t('statistics.period')}</InputLabel>
-                <Select
-                  value={periode}
-                  onChange={handlePeriodeChange}
-                  label={t('statistics.period')}
-                >
-                  <MenuItem value="semaine">{t('statistics.week')}</MenuItem>
-                  <MenuItem value="mois">{t('statistics.month')}</MenuItem>
-                  <MenuItem value="annee">{t('statistics.year')}</MenuItem>
-                </Select>
-              </FormControl>
-
-              {periode === 'mois' && (
-                <FormControl sx={{ minWidth: 150 }}>
-                  <InputLabel>{t('statistics.selectMonth')}</InputLabel>
-                  <Select
-                    value={moisSelectionne}
-                    onChange={handleMoisChange}
-                    label={t('statistics.selectMonth')}
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="name" 
+                    label={{ 
+                      value: t('statistics.subject'), 
+                      position: 'insideBottomRight', 
+                      offset: -10 
+                    }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={100}
+                  />
+                  <YAxis 
+                    label={{ 
+                      value: t('statistics.courses'), 
+                      angle: -90, 
+                      position: 'insideLeft', 
+                      offset: 0 
+                    }}
+                  />
+                  <Tooltip 
+                    formatter={(value, name) => [`${value} ${t('statistics.courses')}`, name]}
+                    labelFormatter={(label) => `${t('statistics.subject')} ${label}`}
+                  />
+                  <Legend />
+                  <Bar 
+                    dataKey="value" 
+                    fill="#8884d8"
+                    name={t('statistics.courses')}
                   >
-                    {getMoisItems()}
-                  </Select>
-                </FormControl>
-              )}
-
-              {periode === 'annee' && (
-                <FormControl sx={{ minWidth: 150 }}>
-                  <InputLabel>{t('statistics.selectYear')}</InputLabel>
-                  <Select
-                    value={anneeSelectionnee}
-                    onChange={handleAnneeChange}
-                    label={t('statistics.selectYear')}
-                  >
-                    {getAnneeItems()}
-                  </Select>
-                </FormControl>
-              )}
-            </Box>
-            
-            <Box sx={{ height: 500, width: '100%' }}>
-              {renderGraph()}
-            </Box>
+                    {coursParMatiere.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={getRandomColor(index)} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
+                <Typography variant="h6" color="text.secondary">
+                  {t('statistics.noData')}
+                </Typography>
+              </Box>
+            )}
           </CardContent>
         </Card>
-      </Box>
 
-      {/* Nouveau graphique des matières */}
-      <Box sx={{ width: '100%', mb: 3, mt: 4 }}>
-        <Card elevation={3} sx={{ width: '100%', borderRadius: 0 }}>
-          <CardHeader 
-            title={t('statistics.coursesBySubject')} 
-            sx={{ 
-              backgroundColor: 'primary.light', 
-              color: 'white',
-              p: 2
-            }}
-          />
-          <CardContent sx={{ p: 2 }}>
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'flex-end', 
-              mb: 2,
-              gap: 2,
-              flexWrap: 'wrap'
-            }}>
-              <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>{t('statistics.selectClass')}</InputLabel>
-                <Select
-                  value={selectedClasse}
-                  onChange={(e) => setSelectedClasse(e.target.value)}
-                  label={t('statistics.selectClass')}
-                >
-                  <MenuItem value="">{t('common.none')}</MenuItem>
-                  {classes.map((classe) => (
-                    <MenuItem key={classe._id} value={classe.nom}>
-                      {classe.nom}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {/* Réutiliser les sélecteurs de période existants */}
-              <FormControl sx={{ minWidth: 150 }}>
-                <InputLabel>{t('statistics.period')}</InputLabel>
-                <Select
-                  value={periode}
-                  onChange={handlePeriodeChange}
-                  label={t('statistics.period')}
-                >
-                  <MenuItem value="semaine">{t('statistics.week')}</MenuItem>
-                  <MenuItem value="mois">{t('statistics.month')}</MenuItem>
-                  <MenuItem value="annee">{t('statistics.year')}</MenuItem>
-                </Select>
-              </FormControl>
-
-              {periode === 'mois' && (
-                <FormControl sx={{ minWidth: 150 }}>
-                  <InputLabel>{t('statistics.selectMonth')}</InputLabel>
+        {/* Graphique des cours par enseignant */}
+        <Card>
+          <CardHeader
+            title={t('statistics.coursesByTeacher')}
+            subheader={t('statistics.coursesByTeacherDescription')}
+            action={
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                <FormControl size="small" sx={{ minWidth: 200 }}>
+                  <InputLabel>{t('statistics.teachers')}</InputLabel>
                   <Select
-                    value={moisSelectionne}
-                    onChange={handleMoisChange}
-                    label={t('statistics.selectMonth')}
+                    multiple
+                    value={selectedEnseignants}
+                    onChange={(e) => setSelectedEnseignants(e.target.value)}
+                    label={t('statistics.teachers')}
+                    renderValue={(selected) => selected.join(', ')}
                   >
-                    {getMoisItems()}
+                    {enseignants.map((enseignant) => (
+                      <MenuItem key={enseignant._id} value={`${enseignant.nom} ${enseignant.prenom}`}>
+                        {enseignant.nom} {enseignant.prenom}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
-              )}
-
-              {periode === 'annee' && (
-                <FormControl sx={{ minWidth: 150 }}>
-                  <InputLabel>{t('statistics.selectYear')}</InputLabel>
+                <FormControl size="small" sx={{ minWidth: 120 }}>
+                  <InputLabel>{t('statistics.period')}</InputLabel>
                   <Select
-                    value={anneeSelectionnee}
-                    onChange={handleAnneeChange}
-                    label={t('statistics.selectYear')}
+                    value={periode}
+                    onChange={(e) => setPeriode(e.target.value)}
+                    label={t('statistics.period')}
                   >
-                    {getAnneeItems()}
+                    <MenuItem value="semaine">{t('statistics.week')}</MenuItem>
+                    <MenuItem value="mois">{t('statistics.month')}</MenuItem>
+                    <MenuItem value="annee">{t('statistics.year')}</MenuItem>
                   </Select>
                 </FormControl>
-              )}
-            </Box>
-            
-            <Box sx={{ height: 400, width: '100%' }}>
-              {loading ? (
-                <Box sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  alignItems: 'center',
-                  height: '100%'
-                }}>
-                  <Typography>{t('common.loading')}</Typography>
-                </Box>
-              ) : matiereStats.length === 0 ? (
-                <Box sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  alignItems: 'center',
-                  height: '100%'
-                }}>
-                  <Typography>{t('statistics.noDataAvailable')}</Typography>
-                </Box>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={matiereStats}
-                    margin={{
-                      top: 20,
-                      right: 30,
-                      left: 20,
-                      bottom: 5,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="matiere" 
-                      label={{ 
-                        value: t('statistics.subjects'), 
-                        position: 'insideBottomRight', 
-                        offset: -10 
-                      }}
-                      angle={-45}
-                      textAnchor="end"
-                      height={100}
-                    />
-                    <YAxis
-                      label={{ 
-                        value: t('statistics.numberOfHours'), 
-                        angle: -90, 
-                        position: 'insideLeft',
-                        offset: -5
-                      }}
-                    />
-                    <Tooltip
-                      formatter={(value, name, props) => [
-                        `${value} ${t('statistics.hours')}`,
-                        props.payload.matiere
-                      ]}
-                      labelFormatter={(value) => t('statistics.subject')}
-                    />
-                    <Legend />
-                    <Bar 
-                      dataKey="heures" 
-                      name={t('statistics.numberOfHours')}
+                {periode === 'mois' && (
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>{t('statistics.month')}</InputLabel>
+                    <Select
+                      value={moisSelectionne}
+                      onChange={(e) => setMoisSelectionne(e.target.value)}
+                      label={t('statistics.month')}
                     >
-                      {
-                        matiereStats.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))
-                      }
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </Box>
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <MenuItem key={i + 1} value={i + 1}>
+                          {new Date(2000, i).toLocaleString(i18n.language, { month: 'long' })}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+                {periode === 'annee' && (
+                  <FormControl size="small" sx={{ minWidth: 120 }}>
+                    <InputLabel>{t('statistics.year')}</InputLabel>
+                    <Select
+                      value={anneeSelectionnee}
+                      onChange={(e) => setAnneeSelectionnee(e.target.value)}
+                      label={t('statistics.year')}
+                    >
+                      {Array.from({ length: 5 }, (_, i) => {
+                        const year = new Date().getFullYear() - 2 + i;
+                        return (
+                          <MenuItem key={year} value={year}>
+                            {year}
+                          </MenuItem>
+                        );
+                      })}
+                    </Select>
+                  </FormControl>
+                )}
+              </Box>
+            }
+          />
+          <CardContent>
+            {coursParPeriode.length > 0 ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart
+                  height={400}
+                  data={coursParPeriode}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="name" 
+                    label={{ 
+                      value: t('statistics.teacher'), 
+                      position: 'insideBottomRight', 
+                      offset: -10 
+                    }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={100}
+                  />
+                  <YAxis 
+                    label={{ 
+                      value: t('statistics.courses'), 
+                      angle: -90, 
+                      position: 'insideLeft', 
+                      offset: 0 
+                    }}
+                  />
+                  <Tooltip 
+                    formatter={(value, name) => [`${value} ${t('statistics.courses')}`, name]}
+                    labelFormatter={(label) => `${t('statistics.teacher')} ${label}`}
+                  />
+                  <Legend />
+                  <Bar 
+                    dataKey="value" 
+                    fill="#8884d8"
+                    name={t('statistics.courses')}
+                  >
+                    {coursParPeriode.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={getRandomColor(index)} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
+                <Typography variant="h6" color="text.secondary">
+                  {t('statistics.noData')}
+                </Typography>
+              </Box>
+            )}
           </CardContent>
         </Card>
       </Box>

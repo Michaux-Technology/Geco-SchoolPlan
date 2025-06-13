@@ -223,13 +223,16 @@
     "invalidTimeFormat": "Format d'heure invalide. Utilisez le format HH:MM - HH:MM"
   },
   "statistics": {
+    "title": "Statistiques",
     "comingSoon": "Cette fonctionnalité sera bientôt disponible.",
     "period": "Période",
     "week": "Semaine",
     "month": "Mois",
     "year": "Année",
-    "coursesBySubject": "Nombre d'heures par matière",
-    "coursesByDay": "Répartition des cours par jour",
+    "coursesBySubject": "Cours par matière",
+    "coursesBySubjectDescription": "Nombre de cours dispensés par matière",
+    "coursesByTeacher": "Cours par enseignant",
+    "coursesByTeacherDescription": "Nombre de cours dispensés par enseignant",
     "roomUsage": "Taux d'utilisation des salles",
     "numberOfCourses": "Nombre de cours",
     "utilizationPercentage": "Taux d'utilisation (%)",
@@ -242,7 +245,7 @@
     "noDataAvailable": "Aucune donnée disponible pour cet enseignant",
     "teacherCourses": "Nombre de cours dispensés par enseignant",
     "numberCourses": "Nombre de cours",
-    "courses": "cours",
+    "courses": "Cours",
     "selectMonth": "Sélectionner un mois",
     "selectYear": "Sélectionner une année",
     "selectClass": "Sélectionner une classe",
@@ -250,6 +253,9 @@
     "numberOfHours": "Nombre d'heures",
     "subject": "Matière",
     "teacher": "Enseignant",
+    "teachers": "Enseignants",
+    "class": "Classe",
+    "allClasses": "Toutes les classes",
     "noData": "Aucune donnée disponible"
   },
   "months": {

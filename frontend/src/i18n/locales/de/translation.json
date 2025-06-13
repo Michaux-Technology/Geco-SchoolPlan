@@ -149,6 +149,76 @@
     "logout": "Abmelden",
     "statistics": "Statistik"
   },
+  "teachers": {
+    "title": "Lehrerverwaltung",
+    "addTeacher": "Lehrer hinzufügen",
+    "editTeacher": "Lehrer bearbeiten",
+    "deleteTeacher": "Sind Sie sicher, dass Sie diesen Lehrer löschen möchten?",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "subjects": "Fächer"
+  },
+  "subjects": {
+    "title": "Fächerverwaltung",
+    "addSubject": "Fach hinzufügen",
+    "editSubject": "Fach bearbeiten",
+    "deleteSubject": "Sind Sie sicher, dass Sie dieses Fach löschen möchten?",
+    "name": "Name",
+    "description": "Beschreibung"
+  },
+  "classes": {
+    "title": "Klassenverwaltung",
+    "addClass": "Klasse hinzufügen",
+    "editClass": "Klasse bearbeiten",
+    "deleteClass": "Sind Sie sicher, dass Sie diese Klasse löschen möchten?",
+    "name": "Name",
+    "level": "Niveau",
+    "numberOfStudents": "Anzahl der Schüler",
+    "description": "Beschreibung"
+  },
+  "rooms": {
+    "title": "Raumverwaltung",
+    "addRoom": "Raum hinzufügen",
+    "editRoom": "Raum bearbeiten",
+    "deleteRoom": "Sind Sie sicher, dass Sie diesen Raum löschen möchten?",
+    "name": "Name",
+    "type": "Typ",
+    "capacity": "Kapazität",
+    "description": "Beschreibung",
+    "types": {
+      "classroom": "Klassenzimmer",
+      "lab": "Labor",
+      "computer": "Computerraum",
+      "sport": "Sporthalle",
+      "music": "Musikraum",
+      "art": "Kunstraum",
+      "library": "Bibliothek",
+      "gym": "Turnhalle",
+      "foreignLanguage": "Fremdsprachenraum",
+      "other": "Sonstiges"
+    }
+  },
+  "timeSlots": {
+    "title": "Zeitfensterverwaltung",
+    "addTimeSlot": "Zeitfenster hinzufügen",
+    "editTimeSlot": "Zeitfenster bearbeiten",
+    "deleteTimeSlot": "Sind Sie sicher, dass Sie dieses Zeitfenster löschen möchten?",
+    "number": "Nummer",
+    "startTime": "Startzeit",
+    "endTime": "Endzeit",
+    "time": "Zeitfenster",
+    "timeFormat": "Format: HH:MM - HH:MM"
+  },
+  "validation": {
+    "allFieldsRequired": "Nachname, Vorname und mindestens ein Fach sind erforderlich",
+    "subjectNameRequired": "Fachname ist erforderlich",
+    "classNameRequired": "Klassenname ist erforderlich",
+    "roomNameRequired": "Raumname ist erforderlich",
+    "timeSlotRequired": "Zeitfenster ist erforderlich",
+    "invalidTimeFormat": "Ungültiges Zeitformat. Verwenden Sie das Format HH:MM - HH:MM"
+  },
   "statistics": {
     "comingSoon": "Diese Funktion wird in Kürze verfügbar sein.",
     "period": "Zeitraum",
@@ -171,7 +241,9 @@
     "numberCourses": "Anzahl der Kurse",
     "courses": "kurse",
     "selectMonth": "Monat auswählen",
-    "selectYear": "Jahr auswählen"
+    "selectYear": "Jahr auswählen",
+    "teacher": "Lehrer",
+    "noData": "Keine Daten verfügbar"
   },
   "months": {
     "january": "Januar",

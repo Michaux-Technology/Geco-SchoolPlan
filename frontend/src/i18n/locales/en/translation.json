@@ -149,6 +149,76 @@
     "logout": "Logout",
     "statistics": "Statistics"
   },
+  "teachers": {
+    "title": "Teachers management",
+    "addTeacher": "Add teacher",
+    "editTeacher": "Edit teacher",
+    "deleteTeacher": "Are you sure you want to delete this teacher?",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "phone": "Phone",
+    "subjects": "Subjects"
+  },
+  "subjects": {
+    "title": "Subjects management",
+    "addSubject": "Add subject",
+    "editSubject": "Edit subject",
+    "deleteSubject": "Are you sure you want to delete this subject?",
+    "name": "Name",
+    "description": "Description"
+  },
+  "classes": {
+    "title": "Classes management",
+    "addClass": "Add class",
+    "editClass": "Edit class",
+    "deleteClass": "Are you sure you want to delete this class?",
+    "name": "Name",
+    "level": "Level",
+    "numberOfStudents": "Number of students",
+    "description": "Description"
+  },
+  "rooms": {
+    "title": "Rooms management",
+    "addRoom": "Add room",
+    "editRoom": "Edit room",
+    "deleteRoom": "Are you sure you want to delete this room?",
+    "name": "Name",
+    "type": "Type",
+    "capacity": "Capacity",
+    "description": "Description",
+    "types": {
+      "classroom": "Classroom",
+      "lab": "Laboratory",
+      "computer": "Computer room",
+      "sport": "Sports hall",
+      "music": "Music room",
+      "art": "Art room",
+      "library": "Library",
+      "gym": "Gymnasium",
+      "foreignLanguage": "Foreign language room",
+      "other": "Other"
+    }
+  },
+  "timeSlots": {
+    "title": "Time slots management",
+    "addTimeSlot": "Add time slot",
+    "editTimeSlot": "Edit time slot",
+    "deleteTimeSlot": "Are you sure you want to delete this time slot?",
+    "number": "Number",
+    "startTime": "Start time",
+    "endTime": "End time",
+    "time": "Time slot",
+    "timeFormat": "Format: HH:MM - HH:MM"
+  },
+  "validation": {
+    "allFieldsRequired": "Last name, first name and at least one subject are required",
+    "subjectNameRequired": "Subject name is required",
+    "classNameRequired": "Class name is required",
+    "roomNameRequired": "Room name is required",
+    "timeSlotRequired": "Time slot is required",
+    "invalidTimeFormat": "Invalid time format. Use HH:MM - HH:MM format"
+  },
   "statistics": {
     "comingSoon": "This feature will be available soon.",
     "period": "Period",
@@ -166,12 +236,13 @@
     "selectTeachers": "Select Teachers",
     "workHours": "Working Hours",
     "hours": "hours",
-    "noDataAvailable": "No data available for this teacher",
+    "noDataAvailable": "No data available",
     "teacherCourses": "Number of Courses Taught by Teacher",
     "numberCourses": "Number of Courses",
     "courses": "courses",
     "selectMonth": "Select Month",
-    "selectYear": "Select Year"
+    "selectYear": "Select Year",
+    "teacher": "Teacher"
   },
   "months": {
     "january": "January",

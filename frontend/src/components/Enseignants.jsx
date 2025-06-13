@@ -120,7 +120,7 @@ function Enseignants() {
 
   const handleSubmit = () => {
     if (!formData.nom || !formData.prenom || formData.matieres.length === 0) {
-      setError('Le nom, le prénom et au moins une matière sont requis');
+      setError(t('validation.allFieldsRequired'));
       return;
     }
 
@@ -137,7 +137,7 @@ function Enseignants() {
   };
 
   const handleDelete = (enseignant) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet enseignant ?')) {
+    if (window.confirm(t('teachers.deleteTeacher'))) {
       socket.emit('deleteEnseignant', enseignant._id);
     }
   };

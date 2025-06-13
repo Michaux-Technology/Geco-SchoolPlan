@@ -152,6 +152,76 @@
     "logout": "Déconnexion",
     "statistics": "Statistiques"
   },
+  "teachers": {
+    "title": "Gestion des enseignants",
+    "addTeacher": "Ajouter un enseignant",
+    "editTeacher": "Modifier l'enseignant",
+    "deleteTeacher": "Êtes-vous sûr de vouloir supprimer cet enseignant ?",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "Email",
+    "phone": "Téléphone",
+    "subjects": "Matières"
+  },
+  "subjects": {
+    "title": "Gestion des matières",
+    "addSubject": "Ajouter une matière",
+    "editSubject": "Modifier la matière",
+    "deleteSubject": "Êtes-vous sûr de vouloir supprimer cette matière ?",
+    "name": "Nom",
+    "description": "Description"
+  },
+  "classes": {
+    "title": "Gestion des classes",
+    "addClass": "Ajouter une classe",
+    "editClass": "Modifier la classe",
+    "deleteClass": "Êtes-vous sûr de vouloir supprimer cette classe ?",
+    "name": "Nom",
+    "level": "Niveau",
+    "numberOfStudents": "Nombre d'élèves",
+    "description": "Description"
+  },
+  "rooms": {
+    "title": "Gestion des salles",
+    "addRoom": "Ajouter une salle",
+    "editRoom": "Modifier la salle",
+    "deleteRoom": "Êtes-vous sûr de vouloir supprimer cette salle ?",
+    "name": "Nom",
+    "type": "Type",
+    "capacity": "Capacité",
+    "description": "Description",
+    "types": {
+      "classroom": "Salle de classe",
+      "lab": "Laboratoire",
+      "computer": "Salle informatique",
+      "sport": "Salle de sport",
+      "music": "Salle de musique",
+      "art": "Salle d'art",
+      "library": "Bibliothèque",
+      "gym": "Gymnase",
+      "foreignLanguage": "Salle de langue",
+      "other": "Autre"
+    }
+  },
+  "timeSlots": {
+    "title": "Gestion des tranches horaires",
+    "addTimeSlot": "Ajouter une tranche horaire",
+    "editTimeSlot": "Modifier la tranche horaire",
+    "deleteTimeSlot": "Êtes-vous sûr de vouloir supprimer cette tranche horaire ?",
+    "number": "Numéro",
+    "startTime": "Heure de début",
+    "endTime": "Heure de fin",
+    "time": "Tranche horaire",
+    "timeFormat": "Format: HH:MM - HH:MM"
+  },
+  "validation": {
+    "allFieldsRequired": "Le nom, le prénom et au moins une matière sont requis",
+    "subjectNameRequired": "Le nom de la matière est requis",
+    "classNameRequired": "Le nom de la classe est requis",
+    "roomNameRequired": "Le nom de la salle est requis",
+    "timeSlotRequired": "La tranche horaire est requise",
+    "invalidTimeFormat": "Format d'heure invalide. Utilisez le format HH:MM - HH:MM"
+  },
   "statistics": {
     "comingSoon": "Cette fonctionnalité sera bientôt disponible.",
     "period": "Période",
@@ -178,7 +248,9 @@
     "selectClass": "Sélectionner une classe",
     "subjects": "Matières",
     "numberOfHours": "Nombre d'heures",
-    "subject": "Matière"
+    "subject": "Matière",
+    "teacher": "Enseignant",
+    "noData": "Aucune donnée disponible"
   },
   "months": {
     "january": "Janvier",

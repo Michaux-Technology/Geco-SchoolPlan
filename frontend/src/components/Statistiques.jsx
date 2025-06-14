@@ -60,7 +60,7 @@ const SUBJECT_COLORS = [
 ];
 
 const Statistiques = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   // États pour les données
   const [enseignants, setEnseignants] = useState([]);
@@ -183,15 +183,17 @@ const Statistiques = () => {
       });
       
       // Filtrer par période si nécessaire
-      if (periodeActuelle === 'mois') {
-        // Filtrer les cours du mois sélectionné
+      if (periodeActuelle === 'semaine') {
+        // Pour la semaine, on prend la semaine actuelle
+        const semaineActuelle = Math.ceil(new Date().getDate() / 7);
+        coursDeLEnseignant = coursDeLEnseignant.filter(cours => cours.semaine === semaineActuelle);
+      } else if (periodeActuelle === 'mois') {
         coursDeLEnseignant = coursDeLEnseignant.filter(cours => 
           semaineAppartientAuMois(cours.semaine, moisSelectionne)
         );
       } else if (periodeActuelle === 'annee') {
-        // Filtrer les cours de l'année sélectionnée
         coursDeLEnseignant = coursDeLEnseignant.filter(cours => 
-          (cours.annee || new Date().getFullYear()) === anneeSelectionnee
+          cours.annee === anneeSelectionnee
         );
       }
       
@@ -469,36 +471,40 @@ const Statistiques = () => {
     // Filtrer les cours par période si nécessaire
     let coursFiltres = coursData.filter(cours => !cours.annule);
     
-    if (periodeActuelle === 'mois') {
+    if (periodeActuelle === 'semaine') {
+      // Pour la semaine, on prend la semaine actuelle
+      const semaineActuelle = Math.ceil(new Date().getDate() / 7);
+      coursFiltres = coursFiltres.filter(cours => cours.semaine === semaineActuelle);
+    } else if (periodeActuelle === 'mois') {
       coursFiltres = coursFiltres.filter(cours => 
         semaineAppartientAuMois(cours.semaine, moisSelectionne)
       );
     } else if (periodeActuelle === 'annee') {
       coursFiltres = coursFiltres.filter(cours => 
-        (cours.annee || new Date().getFullYear()) === anneeSelectionnee
+        cours.annee === anneeSelectionnee
       );
     }
 
     // Filtrer par classe si une classe est sélectionnée
     if (selectedClasse) {
-      coursFiltres = coursFiltres.filter(cours => cours.classe === selectedClasse);
+      const selectedClasseObj = classes.find(c => c._id === selectedClasse);
+      if (selectedClasseObj) {
+        coursFiltres = coursFiltres.filter(cours => cours.classe === selectedClasseObj.nom);
+      }
     }
 
-    // Regrouper les cours par matière
-    const coursParMatiereMap = {};
+    // Calculer le nombre de cours par matière
+    const matiereCount = {};
     coursFiltres.forEach(cours => {
-      if (!cours.matiere) return;
-      
-      if (!coursParMatiereMap[cours.matiere]) {
-        coursParMatiereMap[cours.matiere] = 0;
+      if (cours.matiere) {
+        matiereCount[cours.matiere] = (matiereCount[cours.matiere] || 0) + 1;
       }
-      coursParMatiereMap[cours.matiere]++;
     });
 
     // Convertir en tableau pour le graphique
-    const donnees = Object.entries(coursParMatiereMap).map(([matiere, count]) => ({
-      name: matiere,
-      value: count
+    const donnees = Object.entries(matiereCount).map(([name, value]) => ({
+      name,
+      value
     }));
 
     setCoursParMatiere(donnees);

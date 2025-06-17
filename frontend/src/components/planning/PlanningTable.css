@@ -1,0 +1,23 @@
+.annotation {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9em;
+  color: #856404;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.planning-cell {
+  position: relative;
+  min-height: 100px;
+  padding: 8px;
+  border: 1px solid #dee2e6;
+  background-color: #fff;
+}
+
+.planning-cell:hover {
+  background-color: #f8f9fa;
+} 

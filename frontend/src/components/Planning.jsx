@@ -4,22 +4,17 @@ import io from 'socket.io-client';
 import {
   Box,
   Button,
-  Container,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  Grid,
   Paper,
   Typography,
   IconButton,
   Tooltip,
   Alert,
-  Menu,
   MenuItem,
-  ListItemIcon,
-  ListItemText,
   Table,
   TableBody,
   TableCell,
@@ -28,37 +23,30 @@ import {
   TableRow,
   Select,
   FormControl,
-  InputAdornment,
   InputLabel,
   Chip
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import './Planning.css';
-import { FaPlus } from 'react-icons/fa';
-import SaveIcon from '@mui/icons-material/Save';
-import EditIcon from '@mui/icons-material/Edit';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@mui/material/styles';
 import { useSnackbar } from 'notistack';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import fr from 'date-fns/locale/fr';
+import AddCourseModal from './planning/AddCourseModal';
+import DeleteCourseModal from './planning/DeleteCourseModal';
+import AddSurveillanceModal from './planning/AddSurveillanceModal';
+import PlanningFilters from './planning/PlanningFilters';
+import WeekSelector from './planning/WeekSelector';
+import AnnotationEditor from './planning/AnnotationEditor';
 
 function Planning() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const socket = useRef(null);
-  const socketInitialized = useRef(false);
 
   // Fonction pour convertir le jour traduit vers le format français pour la base de données
   const convertToFrenchDay = (translatedDay) => {
@@ -163,9 +151,7 @@ function Planning() {
     }
   }, [i18n.language]);
 
-  const [planning, setPlanning] = useState([]);
   const [surveillances, setSurveillances] = useState([]);
-  const [zeitslots, setZeitslots] = useState([]);
   const [enseignants, setEnseignants] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false);
@@ -197,7 +183,7 @@ function Planning() {
     jour: '',
     zeitslot: ''
   });
-  const [isAddSurveillanceModalOpen, setIsAddSurveillanceModalOpen] = useState(false);
+
   const [newSurveillance, setNewSurveillance] = useState({
     enseignant: '',
     lieu: '',
@@ -205,7 +191,7 @@ function Planning() {
     position: 0,
     zeitslot: null
   });
-  const [surveillanceList, setSurveillanceList] = useState([]);
+
   const [contextMenu, setContextMenu] = useState(null);
   const [contextMenuSlot, setContextMenuSlot] = useState(null);
   const [cours, setCours] = useState([]);
@@ -214,7 +200,6 @@ function Planning() {
   const [salles, setSalles] = useState([]);
   const [uhrs, setUhrs] = useState([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
   const [newCours, setNewCours] = useState({
     classe: '',
     enseignant: '',
@@ -224,16 +209,10 @@ function Planning() {
     heure: '',
     semaine: 1
   });
-  const [semaine, setSemaine] = useState(1);
-  const [showAddModal, setShowAddModal] = useState(false);
+
   const [selectedCours, setSelectedCours] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSurveillanceModal, setShowSurveillanceModal] = useState(false);
-  const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);
-  const [showDeleteTimeSlotModal, setShowDeleteTimeSlotModal] = useState(false);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
-  const [success, setSuccess] = useState(null);
   const [showReplaceModal, setShowReplaceModal] = useState(false);
   const [replacementData, setReplacementData] = useState({
     enseignant: '',
@@ -241,6 +220,7 @@ function Planning() {
     matiere: '',
     salle: ''
   });
+
   const [selectedClasse, setSelectedClasse] = useState('');
   const [selectedEnseignant, setSelectedEnseignant] = useState('');
   const [annotations, setAnnotations] = useState({});
@@ -253,9 +233,9 @@ function Planning() {
   const [modelName, setModelName] = useState('');
   const [showModelSelectionDialog, setShowModelSelectionDialog] = useState(false);
   const [selectedModelWeek, setSelectedModelWeek] = useState(null);
-  const [selectedSurveillance, setSelectedSurveillance] = useState(null);
   const [showAllSalles, setShowAllSalles] = useState(false);
   const [showAllEnseignants, setShowAllEnseignants] = useState(false);
+  const [openSurveillanceModal, setOpenSurveillanceModal] = useState(false);
 
   const heures = ['7:45 - 8:25', '8:25 - 9:05', '9:05 - 9:45', '9:45 - 10:25', '10:25 - 11:05', '11:05 - 11:45', '11:45 - 12:25'];
 
@@ -273,50 +253,6 @@ function Planning() {
     fontWeight: 'bold',
     backgroundColor: '#42a5f5',
     color: 'white'
-  };
-
-  // Style pour les annotations
-  const annotationStyle = {
-    padding: '12px',
-    margin: '4px 0',
-    borderRadius: '6px',
-    backgroundColor: '#f8f9fa',
-    border: '1px solid #e9ecef',
-    transition: 'all 0.2s ease-in-out',
-    '&:hover': {
-      backgroundColor: '#e9ecef',
-      borderColor: '#dee2e6',
-      transform: 'translateY(-1px)',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-    }
-  };
-
-  // Style pour le champ de texte des annotations
-  const annotationTextFieldStyle = {
-    '& .MuiOutlinedInput-root': {
-      borderRadius: '6px',
-      backgroundColor: '#fff',
-      '&:hover .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#1976d2'
-      },
-      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-        borderColor: '#1976d2',
-        borderWidth: '2px'
-      }
-    }
-  };
-
-  // Style pour le bouton de sauvegarde des annotations
-  const annotationSaveButtonStyle = {
-    backgroundColor: '#1976d2',
-    color: 'white',
-    borderRadius: '6px',
-    padding: '8px',
-    '&:hover': {
-      backgroundColor: '#1565c0',
-      transform: 'translateY(-1px)',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }
   };
 
   // Fonction pour déterminer si un jour est le jour actuel
@@ -379,95 +315,123 @@ function Planning() {
   }, []);
 
   useEffect(() => {
-    socket.current = io('http://localhost:5000');
+    let isComponentMounted = true;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_ATTEMPTS = 5;
+    const RECONNECT_DELAY = 2000;
 
-    // Écouter les mises à jour du planning
-    socket.current.on('planningUpdate', (data) => {
-      if (data.surveillances) {
-        setSurveillances(data.surveillances);
+    const initializeSocket = () => {
+      if (!socket.current && isComponentMounted) {
+        console.log('Initialisation de la connexion socket...');
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        console.log('URL de l\'API:', apiUrl);
+        
+        if (!apiUrl) {
+          console.error('L\'URL de l\'API n\'est pas définie. Veuillez configurer VITE_API_URL dans le fichier .env');
+          return;
+        }
+
+        try {
+          socket.current = io(apiUrl, {
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
+            reconnectionDelay: RECONNECT_DELAY,
+            withCredentials: true,
+            timeout: 10000,
+            forceNew: true
+          });
+
+          console.log('Configuration Socket.IO terminée');
+
+          socket.current.on('connect', () => {
+            console.log('Socket connecté ! ID:', socket.current.id);
+            reconnectAttempts = 0;
+            if (isComponentMounted) {
+              sendInitialRequests();
+            }
+          });
+
+          socket.current.on('connect_error', (error) => {
+            console.error('Erreur de connexion socket:', error.message);
+            console.error('Détails de l\'erreur:', error);
+            reconnectAttempts++;
+            
+            if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+              console.error('Nombre maximum de tentatives de reconnexion atteint');
+              socket.current?.disconnect();
+            }
+          });
+
+          socket.current.on('disconnect', (reason) => {
+            console.log('Socket déconnecté. Raison:', reason);
+            if (reason === 'io server disconnect') {
+              // Le serveur a forcé la déconnexion, on essaie de se reconnecter
+              socket.current?.connect();
+            }
+          });
+
+          socket.current.on('reconnect', (attemptNumber) => {
+            console.log('Socket reconnecté après', attemptNumber, 'tentatives');
+            if (isComponentMounted) {
+              sendInitialRequests();
+            }
+          });
+
+          socket.current.on('reconnect_error', (error) => {
+            console.error('Erreur de reconnexion:', error.message);
+          });
+
+          socket.current.on('reconnect_failed', () => {
+            console.error('Échec de la reconnexion après toutes les tentatives');
+          });
+
+          socket.current.on('error', (error) => {
+            console.error('Erreur socket générale:', error);
+          });
+
+          // Configuration des écouteurs pour les données
+          configureSocketListeners();
+        } catch (error) {
+          console.error('Erreur lors de l\'initialisation de Socket.IO:', error);
+        }
       }
-      if (data.zeitslots) {
-        setZeitslots(data.zeitslots);
-        setUhrs(data.zeitslots);
+    };
+
+    initializeSocket();
+
+    return () => {
+      isComponentMounted = false;
+      if (socket.current) {
+        console.log('Nettoyage de la connexion socket...');
+        socket.current.disconnect();
+        socket.current = null;
       }
-      if (data.cours) {
-        setCours(data.cours);
-      }
-    });
+    };
+  }, []);
 
-    // Écouter les mises à jour des heures
-    socket.current.on('uhrsUpdate', (data) => {
-      if (Array.isArray(data)) {
-        setUhrs(data);
-        setZeitslots(data);
-      } else {
-        console.error('Données d\'heures invalides:', data);
-        setUhrs([]);
-        setZeitslots([]);
-      }
-    });
+  const sendInitialRequests = () => {
+    if (!socket.current?.connected) {
+      console.log('Socket non connecté, attente de la connexion...');
+      return;
+    }
 
-    // Écouter les mises à jour des enseignants
-    socket.current.on('enseignantsUpdate', (data) => {
+    console.log('Envoi des requêtes initiales...');
+    const currentDate = new Date();
+    const currentWeek = getWeekNumber(currentDate);
+    const currentYear = currentDate.getFullYear();
+    console.log('Semaine:', currentWeek, 'Année:', currentYear);
 
-      if (Array.isArray(data)) {
-        setEnseignants(data);
-      }
-    });
-
-    // Écouter les mises à jour des classes
-    socket.current.on('classesUpdate', (data) => {
-
-      if (Array.isArray(data)) {
-        setClasses(data);
-      }
-    });
-
-    // Écouter les mises à jour des matières
-    socket.current.on('matieresUpdate', (data) => {
-
-      if (Array.isArray(data)) {
-        setMatieres(data);
-      }
-    });
-
-    // Écouter les mises à jour des salles
-    socket.current.on('sallesUpdate', (data) => {
-
-      if (Array.isArray(data)) {
-        setSalles(data);
-      }
-    });
-
-    // Écouter les mises à jour des cours
-    socket.current.on('coursUpdate', (data) => {
-      setCours(data);
-    });
-
-    // Demander les données initiales
-    socket.current.emit('getUhrs');
+    socket.current.emit('getPlanning', { semaine: currentWeek, annee: currentYear });
+    socket.current.emit('getSurveillances', { semaine: currentWeek, annee: currentYear });
+    socket.current.emit('getZeitslots');
     socket.current.emit('getEnseignants');
+    socket.current.emit('getCours');
     socket.current.emit('getClasses');
     socket.current.emit('getMatieres');
     socket.current.emit('getSalles');
-    socket.current.emit('getCours');
-    socket.current.emit('getAnnotations', {
-      semaine: getWeekNumber(currentWeek),
-      annee: currentWeek.getFullYear()
-    });
-
-    socket.current.on('annotationsUpdate', (data) => {
-      setAnnotations(data);
-    });
-
-    socket.current.on('surveillancesUpdate', (data) => {
-      setSurveillances(data);
-    });
-
-    return () => {
-      socket.current.disconnect();
-    };
-  }, []);
+    socket.current.emit('getAnnotations', { semaine: currentWeek, annee: currentYear });
+  };
 
   // Récupérer les semaines modèles stockées au chargement
   useEffect(() => {
@@ -600,13 +564,14 @@ function Planning() {
 
   const handleCellClick = (jour, uhrId, isSurveillance = false, position = -1) => {
     if (isSurveillance) {
-      setSelectedCell({ jour, uhrId, isSurveillance, position });
+      const selectedUhr = uhrs.find(u => u._id === uhrId);
+      setSelectedCell({ jour, zeitslot: selectedUhr, isSurveillance, position });
       setNewSurveillance({
         enseignant: '',
         lieu: '',
         jour: jour,
         position: position,
-        zeitslot: uhrs[0]
+        zeitslot: selectedUhr
       });
       setShowSurveillanceModal(true);
     } else {
@@ -617,7 +582,7 @@ function Planning() {
         return;
       }
       
-      setSelectedCell({ jour, uhrId });
+      setSelectedCell({ jour, zeitslot: selectedUhr });
       setFormData({
         classe: '',
         enseignants: [],
@@ -628,7 +593,7 @@ function Planning() {
         semaine: getWeekNumber(currentWeek)
       });
       setError('');
-      setIsAddSlotModalOpen(true);
+      setIsAddModalOpen(true);
     }
   };
 
@@ -679,128 +644,6 @@ function Planning() {
       // Si on ajoute un nouveau cours
       socket.current.emit('addSlot', slotData);
     }
-  };
-
-  const handleAddSurveillance = () => {
-    const currentYear = new Date().getFullYear();
-    const weekNumber = getWeekNumber(currentWeek);
-    const frenchDay = convertToFrenchDay(newSurveillance.jour);
-
-    console.log('Adding surveillance:', {
-      original: newSurveillance,
-      frenchDay,
-      weekNumber,
-      currentYear
-    });
-
-    const surveillanceData = {
-      enseignant: newSurveillance.enseignant,
-      lieu: newSurveillance.lieu,
-      jour: frenchDay,
-      position: newSurveillance.position,
-      uhr: newSurveillance.zeitslot?._id || newSurveillance.zeitslot,
-      semaine: weekNumber,
-      annee: currentYear,
-      type: 'entre_creneaux',
-      duree: 1
-    };
-
-    console.log('Surveillance data to send:', surveillanceData);
-
-    if (!surveillanceData.uhr) {
-      enqueueSnackbar(t('planning.surveillance.addError'), { variant: 'error' });
-      return;
-    }
-
-    socket.current.once('surveillanceAdded', (surveillance) => {
-      console.log('Surveillance added:', surveillance);
-      enqueueSnackbar(t('planning.surveillance.added'), { variant: 'success' });
-      setShowSurveillanceModal(false);
-      setNewSurveillance({
-        enseignant: '',
-        lieu: '',
-        jour: '',
-        position: -1,
-        zeitslot: null
-      });
-    });
-
-    socket.current.once('surveillanceError', (error) => {
-      console.error('Erreur lors de l\'ajout de la surveillance:', error);
-      enqueueSnackbar(t('planning.surveillance.addError'), { variant: 'error' });
-    });
-
-    socket.current.emit('addSurveillance', surveillanceData);
-  };
-
-  const handleDeleteSurveillance = (surveillance) => {
-    if (window.confirm(t('planning.surveillance.confirmDelete'))) {
-      socket.current.emit('deleteSurveillance', surveillance._id);
-    }
-  };
-
-  const handleRemoveSurveillance = (index) => {
-    const newList = surveillanceList.filter((_, i) => i !== index);
-    setSurveillanceList(newList);
-  };
-
-  const handleSaveSurveillances = () => {
-    if (surveillanceList.length === 0) {
-      setError('Veuillez ajouter au moins une surveillance');
-      return;
-    }
-
-    // Obtenir le numéro de semaine actuel
-    const currentWeekNumber = getWeekNumber(currentWeek);
-
-    // Vérifier si on est dans une ligne de surveillance
-    const isSurveillanceRow = selectedCell?.isSurveillance;
-    if (!isSurveillanceRow) {
-      setError('Les surveillances ne peuvent être ajoutées que dans les lignes de surveillance');
-      return;
-    }
-
-    // Trouver toutes les surveillances existantes pour ce créneau
-    const existingSurveillances = surveillances.filter(s => 
-      s.jour === newSurveillance.jour && 
-      s.uhr && 
-      s.uhr._id === newSurveillance.zeitslot && 
-      s.semaine === currentWeekNumber &&
-      s.type === 'entre_creneaux' &&
-      s.position === selectedCell.position
-    );
-
-    // Supprimer toutes les surveillances existantes de la même position
-    existingSurveillances.forEach(surveillance => {
-      socket.current.emit('deleteSurveillance', surveillance._id);
-    });
-
-    // Ajouter chaque surveillance de la liste
-    surveillanceList.forEach(surveillance => {
-      const surveillanceData = {
-        surveillant: surveillance.surveillant,
-        lieu: surveillance.lieu,
-        jour: newSurveillance.jour,
-        zeitslot: newSurveillance.zeitslot,
-        semaine: currentWeekNumber,
-        type: 'entre_creneaux',
-        duree: 1,
-        position: selectedCell.position
-      };
-
-      socket.current.emit('addSurveillance', surveillanceData);
-    });
-
-    // Réinitialiser le modal
-    setIsAddSurveillanceModalOpen(false);
-    setSurveillanceList([]);
-    setNewSurveillance({
-      surveillant: '',
-      lieu: '',
-      jour: '',
-      zeitslot: ''
-    });
-    setError('');
   };
 
   const handleContextMenu = (event, slot, jour, zeitslot, isSurveillance = false) => {
@@ -903,9 +746,9 @@ function Planning() {
       enseignants: [],
       matiere: '',
       salle: '',
-      jour: '',
-      uhr: '',
-      semaine: 1
+      jour: selectedCell?.jour || '',
+      uhr: selectedCell?.zeitslot?._id || '',
+      semaine: getWeekNumber(currentWeek)
     });
     setError('');
     setIsAddModalOpen(true);
@@ -917,12 +760,19 @@ function Planning() {
   };
 
   const handleSubmitModal = () => {
-    if (!formData.classe || !formData.enseignants || formData.enseignants.length === 0 || !formData.matiere || !formData.salle || !formData.jour || !formData.uhr) {
+    // Vérification des champs requis
+    if (!formData.classe || !formData.enseignants || formData.enseignants.length === 0 || !formData.matiere || !formData.salle) {
       setError('Tous les champs sont requis');
       return;
     }
 
-    const uhr = uhrs.find(u => u._id === formData.uhr);
+    // Vérification du jour et de l'heure
+    if (!selectedCell?.jour || !selectedCell?.zeitslot?._id) {
+      setError('Jour et créneau horaire non définis');
+      return;
+    }
+
+    const uhr = uhrs.find(u => u._id === selectedCell.zeitslot._id);
     if (!uhr) {
       setError('Créneau horaire non trouvé');
       return;
@@ -932,7 +782,7 @@ function Planning() {
     const enseignantsList = formData.enseignants.length > 0 ? formData.enseignants : ['Non assigné'];
 
     // Convertir le jour traduit en jour français pour la base de données
-    const frenchDay = convertToFrenchDay(formData.jour);
+    const frenchDay = convertToFrenchDay(selectedCell.jour);
 
     const coursData = {
       classe: formData.classe,
@@ -945,35 +795,36 @@ function Planning() {
       salle: formData.salle,
       jour: frenchDay,
       heure: `${uhr.start} - ${uhr.ende}`,
-      uhr: formData.uhr,
+      uhr: selectedCell.zeitslot._id,
       semaine: getWeekNumber(currentWeek),
       annee: currentWeek.getFullYear()
     };
 
-    
-    // Ajouter des gestionnaires d'événements pour le succès et l'erreur
-    socket.current.once('success', (message) => {
-      enqueueSnackbar(t('planning.courseAdded', 'Cours ajouté avec succès'), { variant: 'success' });
-      setIsAddSlotModalOpen(false);
-      setFormData({
-        classe: '',
-        enseignants: [],
-        matiere: '',
-        salle: '',
-        jour: '',
-        uhr: '',
-        semaine: 1
+    // Fermer le modal immédiatement
+    setIsAddModalOpen(false);
+    setFormData({
+      classe: '',
+      enseignants: [],
+      matiere: '',
+      salle: '',
+      jour: '',
+      uhr: '',
+      semaine: 1
+    });
+    setError('');
+
+    if (socket.current?.connected) {
+      socket.current.emit('addCours', coursData, (response) => {
+        if (response.success) {
+          enqueueSnackbar(t('planning.courseAdded', 'Cours ajouté avec succès'), { variant: 'success' });
+        } else {
+          console.error('Erreur lors de l\'ajout du cours:', response.message);
+          enqueueSnackbar(t('planning.courseAddError', 'Erreur lors de l\'ajout du cours'), { variant: 'error' });
+        }
       });
-      setError('');
-    });
-
-    socket.current.once('error', (errorMessage) => {
-      console.error('Erreur lors de l\'ajout du cours:', errorMessage);
-      setError(errorMessage || 'Erreur lors de l\'ajout du cours');
-      enqueueSnackbar(t('planning.courseAddError', 'Erreur lors de l\'ajout du cours'), { variant: 'error' });
-    });
-
-    socket.current.emit('addCours', coursData);
+    } else {
+      enqueueSnackbar(t('planning.connectionError', 'Erreur de connexion au serveur'), { variant: 'error' });
+    }
   };
 
   // Fonction de filtrage des cours
@@ -1001,11 +852,6 @@ function Planning() {
       cours.semaine === getWeekNumber(currentWeek) &&
       cours.annee === currentWeek.getFullYear()
     );
-  };
-
-  const handleDeleteCours = (cours) => {
-    setSelectedCours(cours);
-    setShowDeleteModal(true);
   };
 
   const handleDeleteConfirm = (action) => {
@@ -1055,98 +901,62 @@ function Planning() {
   };
 
   const handleReplaceSubmit = () => {
-    if (selectedCours) {
-      const remplacementInfo = [];
-      
-      // Gestion des enseignants comme un tableau
-      const currentEnseignants = Array.isArray(selectedCours.enseignants) 
-        ? selectedCours.enseignants.join(', ') 
-        : (selectedCours.enseignants || 'Non assigné');
-        
-      if (replacementData.enseignants.length > 0 && replacementData.enseignants.join(', ') !== currentEnseignants) {
-        remplacementInfo.push(`Enseignant: ${currentEnseignants} → ${replacementData.enseignants.join(', ')}`);
-      }
-      
-      if (replacementData.matiere !== selectedCours.matiere) {
-        const oldMatiere = selectedCours.matiere || 'Non assignée';
-        remplacementInfo.push(`Matière: ${oldMatiere} → ${replacementData.matiere}`);
-      }
-      
-      if (replacementData.salle !== selectedCours.salle) {
-        const oldSalle = selectedCours.salle || 'Non assignée';
-        remplacementInfo.push(`Salle: ${oldSalle} → ${replacementData.salle}`);
-      }
+    if (!selectedCours) return;
 
-      if (remplacementInfo.length === 0) {
-        setError('Aucune modification n\'a été effectuée');
-        return;
-      }
+    // Vérifier si au moins un champ a été modifié
+    const currentEnseignants = selectedCours.enseignants?.join(', ') || '';
+    const hasChanges = 
+      replacementData.enseignants.join(', ') !== currentEnseignants ||
+      replacementData.matiere !== selectedCours.matiere ||
+      replacementData.salle !== selectedCours.salle;
 
-      // Préparation des données mises à jour
-      const updatedData = {
-        _id: selectedCours._id,
-        remplace: true,
-        annule: false,
-        remplacementInfo: remplacementInfo.join(', '),
-        enseignantsIds: replacementData.enseignants.map(enseignant => {
-          const enseignantObj = enseignants.find(e => e.nom === enseignant);
-          return enseignantObj ? enseignantObj._id : null;
-        })
-      };
-      
-      // Si l'enseignant est modifié, mettre à jour les enseignants et leurs IDs
-      if (replacementData.enseignants.length > 0 && replacementData.enseignants.join(', ') !== currentEnseignants) {
-        updatedData.enseignants = replacementData.enseignants;
-      }
-      
-      // Ajouter les autres champs modifiés
-      if (replacementData.matiere !== selectedCours.matiere) {
-        updatedData.matiere = replacementData.matiere;
-      }
-      
-      if (replacementData.salle !== selectedCours.salle) {
-        updatedData.salle = replacementData.salle;
-      }
-
-      // Envoyer la mise à jour
-      socket.current.emit('updateCours', updatedData);
+    if (!hasChanges) {
+      enqueueSnackbar(t('planning.noChanges', 'Aucune modification effectuée'), { variant: 'warning' });
       handleReplaceCancel();
+      return;
     }
-  };
 
-  const handleAnnotationChange = (jour, value) => {
-    const frenchDay = convertToFrenchDay(jour);
-    setAnnotations(prev => ({
-      ...prev,
-      [frenchDay]: value
-    }));
-  };
-
-  const handleAnnotationSave = (jour) => {
-    const frenchDay = convertToFrenchDay(jour);
-    if (socket.current) {
-      const data = {
-        jour: frenchDay,
-        annotation: annotations[frenchDay],
-        semaine: getWeekNumber(currentWeek),
-        date: currentWeek,
-        annee: currentWeek.getFullYear()
-      };
-
-      // Ajouter des écouteurs pour les réponses du serveur
-      socket.current.once('annotationsUpdate', (updatedAnnotations) => {
-        setAnnotations(updatedAnnotations);
-        enqueueSnackbar(t('planning.annotationSaved', 'Annotation sauvegardée'), { variant: 'success' });
-      });
-
-      socket.current.once('annotationError', (error) => {
-        console.error('Erreur lors de la sauvegarde de l\'annotation:', error);
-        enqueueSnackbar(t('planning.annotationError', 'Erreur lors de la sauvegarde de l\'annotation'), { variant: 'error' });
-      });
-
-      socket.current.emit('saveAnnotation', data);
-      setEditingAnnotation(null);
+    // Préparer les informations de remplacement
+    const remplacementInfo = [];
+    if (replacementData.enseignants.join(', ') !== currentEnseignants) {
+      remplacementInfo.push(`Enseignant: ${replacementData.enseignants.join(', ')}`);
     }
+    if (replacementData.matiere !== selectedCours.matiere) {
+      remplacementInfo.push(`Matière: ${replacementData.matiere}`);
+    }
+    if (replacementData.salle !== selectedCours.salle) {
+      remplacementInfo.push(`Salle: ${replacementData.salle}`);
+    }
+
+    // Préparation des données mises à jour
+    const updatedData = {
+      _id: selectedCours._id,
+      remplace: true,
+      annule: false,
+      remplacementInfo: remplacementInfo.join(', '),
+      enseignantsIds: replacementData.enseignants.map(enseignant => {
+        const enseignantObj = enseignants.find(e => e.nom === enseignant);
+        return enseignantObj ? enseignantObj._id : null;
+      })
+    };
+    
+    // Si l'enseignant est modifié, mettre à jour les enseignants et leurs IDs
+    if (replacementData.enseignants.length > 0 && replacementData.enseignants.join(', ') !== currentEnseignants) {
+      updatedData.enseignants = replacementData.enseignants;
+    }
+    
+    // Ajouter les autres champs modifiés
+    if (replacementData.matiere !== selectedCours.matiere) {
+      updatedData.matiere = replacementData.matiere;
+    }
+    
+    if (replacementData.salle !== selectedCours.salle) {
+      updatedData.salle = replacementData.salle;
+    }
+
+    // Envoyer la mise à jour
+    socket.current.emit('updateCours', updatedData);
+    handleReplaceCancel();
   };
 
   // Fonction pour copier une semaine de planning
@@ -1482,9 +1292,13 @@ function Planning() {
 
   // Dans le rendu des surveillances
   const renderSurveillance = (surveillance) => {
+    // Trouver l'enseignant correspondant à l'ID
+    const enseignant = enseignants.find(e => e._id === surveillance.enseignant);
+    const nomEnseignant = enseignant ? enseignant.nom : surveillance.enseignant;
+
     return (
       <div className="surveillance-info">
-        <span>{surveillance.enseignant}</span>
+        <span>{nomEnseignant}</span>
         <span>{surveillance.lieu}</span>
       </div>
     );
@@ -1492,15 +1306,72 @@ function Planning() {
 
   // Dans le modal de surveillance
   const handleSurveillanceClick = (surveillance, jour) => {
-    setSelectedSurveillance(surveillance);
+    setSelectedCell({ 
+      jour, 
+      zeitslot: uhrs.find(u => u._id === surveillance.uhr),
+      isSurveillance: true,
+      position: surveillance.position,
+      surveillance
+    });
     setNewSurveillance({
       enseignant: surveillance.enseignant,
       lieu: surveillance.lieu,
-      jour: jour, // Utiliser le jour déjà traduit passé en paramètre
+      jour: jour,
       position: surveillance.position,
-      zeitslot: surveillance.uhr
+      zeitslot: uhrs.find(u => u._id === surveillance.uhr)
     });
     setShowSurveillanceModal(true);
+  };
+
+  const configureSocketListeners = () => {
+    console.log('Configuration des écouteurs socket...');
+
+    socket.current.on('planningUpdate', (data) => {
+      console.log('Mise à jour du planning reçue:', data);
+      if (data.planning) setCours(data.planning);
+      if (data.surveillances) setSurveillances(data.surveillances);
+      if (data.zeitslots) setUhrs(data.zeitslots);
+    });
+
+    socket.current.on('uhrsUpdate', (data) => {
+      console.log('Mise à jour des heures reçue:', data);
+      setUhrs(data);
+    });
+
+    socket.current.on('enseignantsUpdate', (data) => {
+      console.log('Mise à jour des enseignants reçue:', data);
+      setEnseignants(data);
+    });
+
+    socket.current.on('matieresUpdate', (data) => {
+      console.log('Mise à jour des matières reçue:', data);
+      setMatieres(data);
+    });
+
+    socket.current.on('sallesUpdate', (data) => {
+      console.log('Mise à jour des salles reçue:', data);
+      setSalles(data);
+    });
+
+    socket.current.on('surveillancesUpdate', (data) => {
+      console.log('Mise à jour des surveillances reçue:', data);
+      setSurveillances(data);
+    });
+
+    socket.current.on('coursUpdate', (data) => {
+      console.log('Mise à jour des cours reçue:', data);
+      setCours(data);
+    });
+
+    socket.current.on('classesUpdate', (data) => {
+      console.log('Mise à jour des classes reçue:', data);
+      setClasses(data);
+    });
+
+    socket.current.on('annotationsUpdate', (data) => {
+      console.log('Mise à jour des annotations reçue:', data);
+      setAnnotations(data);
+    });
   };
 
   return (
@@ -1522,45 +1393,27 @@ function Planning() {
         alignItems: 'center',
         mb: 3
       }}>
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>{t('planning.class')}</InputLabel>
-          <Select
-            value={selectedClasse}
-            onChange={(e) => setSelectedClasse(e.target.value)}
-            label={t('planning.class')}
-          >
-            <MenuItem value="">{t('planning.all')}</MenuItem>
-            {classes.map((classe) => (
-              <MenuItem key={classe._id} value={classe.nom}>
-                {classe.nom}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <PlanningFilters
+          selectedClasse={selectedClasse}
+          setSelectedClasse={setSelectedClasse}
+          selectedEnseignant={selectedEnseignant}
+          setSelectedEnseignant={setSelectedEnseignant}
+          classes={classes}
+          enseignants={enseignants}
+        />
 
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>{t('planning.teacher')}</InputLabel>
-          <Select
-            value={selectedEnseignant}
-            onChange={(e) => setSelectedEnseignant(e.target.value)}
-            label={t('planning.teacher')}
-          >
-            <MenuItem value="">{t('planning.all')}</MenuItem>
-            {enseignants.map((enseignant) => (
-              <MenuItem key={enseignant._id} value={enseignant._id}>
-                {enseignant.nom}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <Box sx={{ ml: 2, display: 'flex', gap: 1 }}>
+        <Box sx={{ ml: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           <Tooltip title={t('planning.copyWeek', 'Copier cette semaine')}>
             <Button
               startIcon={<ContentCopyIcon />}
               variant="outlined"
               onClick={handleCopyWeek}
               size="small"
+              sx={{ 
+                minWidth: '100px',
+                height: '36px',
+                whiteSpace: 'nowrap'
+              }}
             >
               {t('planning.copy', 'Copier')}
             </Button>
@@ -1575,6 +1428,11 @@ function Planning() {
                 disabled={!copiedWeekCourses}
                 size="small"
                 color="secondary"
+                sx={{ 
+                  minWidth: '100px',
+                  height: '36px',
+                  whiteSpace: 'nowrap'
+                }}
               >
                 {t('planning.paste', 'Coller')}
               </Button>
@@ -1588,6 +1446,11 @@ function Planning() {
               onClick={handleSaveAsModel}
               size="small"
               color="warning"
+              sx={{ 
+                minWidth: '100px',
+                height: '36px',
+                whiteSpace: 'nowrap'
+              }}
             >
               {t('planning.saveModel', 'Modèle')}
             </Button>
@@ -1600,33 +1463,22 @@ function Planning() {
               onClick={handleOpenModelSelection}
               size="small"
               color="warning"
+              sx={{ 
+                minWidth: '100px',
+                height: '36px',
+                whiteSpace: 'nowrap'
+              }}
             >
               {t('planning.applyModel', 'Appliquer')}
             </Button>
           </Tooltip>
         </Box>
 
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center',
-          gap: 1,
-          ml: 'auto'
-        }}>
-          <IconButton onClick={() => navigateWeek(-1)} size="small">
-            <ArrowBackIosIcon />
-          </IconButton>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ color: 'primary.main' }}>
-              {currentWeek.toLocaleDateString('fr-FR', { year: 'numeric' })}
-            </Typography>
-            <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-              {t('planning.week')} {getWeekNumber(currentWeek)}
-            </Typography>
-          </Box>
-          <IconButton onClick={() => navigateWeek(1)} size="small">
-            <ArrowForwardIosIcon />
-          </IconButton>
-        </Box>
+        <WeekSelector
+          currentWeek={currentWeek}
+          navigateWeek={navigateWeek}
+          getWeekNumber={getWeekNumber}
+        />
       </Box>
 
       <DragDropContext
@@ -2242,60 +2094,12 @@ function Planning() {
                         gap: 1,
                         height: '100%'
                       }}>
-                        {editingAnnotation === jour ? (
-                          <Box sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: 1,
-                            width: '100%'
-                          }}>
-                            <TextField
-                              variant="outlined"
-                              size="small"
-                              fullWidth
-                              multiline
-                              rows={2}
-                              value={hasAnnotation || ''}
-                              onChange={(e) => handleAnnotationChange(jour, e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && e.ctrlKey) {
-                                  e.preventDefault();
-                                  handleAnnotationSave(jour);
-                                }
-                              }}
-                              sx={annotationTextFieldStyle}
-                              placeholder={t('planning.addAnnotation', 'Ajouter une annotation...')}
-                            />
-                            <IconButton
-                              size="small"
-                              onClick={() => handleAnnotationSave(jour)}
-                              sx={annotationSaveButtonStyle}
-                            >
-                              <SaveIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
-                        ) : (
-                          <Typography
-                            onClick={() => setEditingAnnotation(jour)}
-                            sx={{
-                              ...annotationStyle,
-                              width: '100%',
-                              minHeight: '60px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              cursor: 'pointer',
-                              color: hasAnnotation ? 'text.primary' : 'text.secondary',
-                              fontStyle: hasAnnotation ? 'normal' : 'italic',
-                              whiteSpace: 'pre-wrap',
-                              wordBreak: 'break-word',
-                              textAlign: 'left',
-                              padding: '8px'
-                            }}
-                          >
-                            {hasAnnotation || t('planning.addAnnotation', 'Cliquez pour ajouter une annotation')}
-                          </Typography>
-                        )}
+                        <AnnotationEditor
+                          jour={jour}
+                          annotation={hasAnnotation}
+                          currentWeek={currentWeek}
+                          socket={socket.current}
+                        />
                       </Box>
                     </TableCell>
                   );
@@ -2392,163 +2196,20 @@ function Planning() {
       </Dialog>
 
       {/* Modal pour ajouter un nouveau cours */}
-      <Dialog 
-        open={isAddSlotModalOpen} 
-        onClose={() => {
-          setIsAddSlotModalOpen(false);
-          setError('');
-          setFormData({
-            classe: '',
-            enseignants: [],
-            matiere: '',
-            salle: '',
-            jour: '',
-            uhr: '',
-            semaine: 1
-          });
-        }}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          {selectedCell?.slot ? t('planning.editCourse') : t('planning.addCourse')}
-          <Typography variant="subtitle2" color="text.secondary">
-            {selectedCell?.jour} - {uhrs.find(u => u._id === selectedCell?.uhrId)?.zeitslot}
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>{t('planning.class')}</InputLabel>
-            <Select
-              value={formData.classe}
-              onChange={(e) => setFormData({ ...formData, classe: e.target.value })}
-              label={t('planning.class')}
-            >
-              {classes && classes.map((classe) => (
-                <MenuItem key={classe._id} value={classe.nom}>
-                  {classe.nom} (nombre d'élèves: {classe.nombreEleves || 0})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>{t('planning.teachers')}</InputLabel>
-            <Select
-              multiple
-              value={formData.enseignants}
-              onChange={(e) => {
-                // Filtrer la valeur "toggleAll" si elle est présente
-                const filteredValues = e.target.value.filter(value => value !== "toggleAll");
-                setFormData({ ...formData, enseignants: filteredValues });
-              }}
-              renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {selected.map((value) => (
-                    <Chip key={value} label={value} />
-                  ))}
-                </Box>
-              )}
-            >
-              <MenuItem 
-                value="toggleAll" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowAllEnseignants(!showAllEnseignants);
-                }}
-                sx={{ 
-                  backgroundColor: '#f5f5f5',
-                  '&:hover': {
-                    backgroundColor: '#e0e0e0'
-                  }
-                }}
-              >
-                {showAllEnseignants ? t('planning.showAvailableTeachers', 'Voir les enseignants disponibles') : t('planning.showAllTeachers', 'Voir tous les enseignants')}
-              </MenuItem>
-              {getEnseignantsDisponibles(selectedCell?.jour, selectedCell?.uhrId).map((enseignant) => (
-                <MenuItem key={enseignant._id} value={enseignant.nom}>
-                  {enseignant.nom} ({enseignant.matieres?.join(', ') || 'Aucune matière'})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>{t('planning.subject')}</InputLabel>
-            <Select
-              value={formData.matiere}
-              onChange={(e) => setFormData({ ...formData, matiere: e.target.value })}
-              label={t('planning.subject')}
-            >
-              {matieres.map((matiere) => (
-                <MenuItem key={matiere._id} value={matiere.nom}>
-                  {matiere.nom}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>{t('planning.room')}</InputLabel>
-            <Select
-              value={formData.salle}
-              onChange={(e) => {
-                if (e.target.value !== "toggleAll") {
-                  setFormData({ ...formData, salle: e.target.value });
-                }
-              }}
-              label={t('planning.room')}
-            >
-              <MenuItem 
-                value="toggleAll" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowAllSalles(!showAllSalles);
-                }}
-                sx={{ 
-                  backgroundColor: '#f5f5f5',
-                  '&:hover': {
-                    backgroundColor: '#e0e0e0'
-                  }
-                }}
-              >
-                {showAllSalles ? t('planning.showAvailableRooms', 'Voir les salles disponibles') : t('planning.showAllRooms', 'Voir toutes les salles')}
-              </MenuItem>
-              {getSallesDisponibles(selectedCell?.jour, selectedCell?.uhrId).map((salle) => (
-                <MenuItem key={salle._id} value={salle.nom}>
-                  {salle.nom} (Places disponibles : {salle.capacite || 0})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          {error && (
-            <Alert severity="error" sx={{ mt: 2 }}>
-              {error}
-            </Alert>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => {
-            setIsAddSlotModalOpen(false);
-            setError('');
-            setFormData({
-              classe: '',
-              enseignants: [],
-              matiere: '',
-              salle: '',
-              jour: '',
-              uhr: '',
-              semaine: 1
-            });
-          }}>
-            {t('common.cancel')}
-          </Button>
-          <Button 
-            variant="contained" 
-            onClick={handleSubmitModal}
-            disabled={!formData.classe || !formData.enseignants.length || !formData.matiere || !formData.salle}
-          >
-            {t('common.add')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <AddCourseModal
+        open={isAddModalOpen}
+        onClose={handleCloseModal}
+        onSubmit={handleSubmitModal}
+        formData={formData}
+        setFormData={setFormData}
+        error={error}
+        classes={classes}
+        enseignants={enseignants}
+        matieres={matieres}
+        salles={salles}
+        uhrs={uhrs}
+        selectedCell={selectedCell}
+      />
 
       {/* Dialogue pour enregistrer un modèle de semaine */}
       <Dialog
@@ -2722,161 +2383,37 @@ function Planning() {
       </Dialog>
 
       {/* Modal de surveillance */}
-      <Dialog
+      <AddSurveillanceModal
         open={showSurveillanceModal}
-        onClose={() => setShowSurveillanceModal(false)}
-      >
-        <DialogTitle>
-          {selectedSurveillance ? t('planning.surveillance.edit') : t('planning.surveillance.add')}
-        </DialogTitle>
-        <DialogContent>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>{t('planning.surveillance.teacher')}</InputLabel>
-            <Select
-              value={newSurveillance.enseignant}
-              onChange={(e) => setNewSurveillance({ ...newSurveillance, enseignant: e.target.value })}
-              label={t('planning.surveillance.teacher')}
-            >
-              {enseignants.map((enseignant) => (
-                <MenuItem key={enseignant._id} value={enseignant.nom}>
-                  {enseignant.nom}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <TextField
-            fullWidth
-            margin="normal"
-            label={t('planning.surveillance.location')}
-            value={newSurveillance.lieu}
-            onChange={(e) => setNewSurveillance({ ...newSurveillance, lieu: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowSurveillanceModal(false)}>
-            {t('common.cancel')}
-          </Button>
-          {selectedSurveillance && (
-            <Button 
-              color="error" 
-              onClick={() => {
-                handleDeleteSurveillance(selectedSurveillance);
-                setShowSurveillanceModal(false);
-              }}
-            >
-              {t('common.delete')}
-            </Button>
-          )}
-          <Button 
-            variant="contained" 
-            onClick={handleAddSurveillance}
-            disabled={!newSurveillance.enseignant || !newSurveillance.lieu}
-          >
-            {t('common.save')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onClose={() => {
+          setShowSurveillanceModal(false);
+          setSelectedCell(null);
+          setNewSurveillance({
+            enseignant: '',
+            lieu: '',
+            jour: '',
+            position: -1,
+            zeitslot: null
+          });
+        }}
+        enseignants={enseignants}
+        currentWeek={currentWeek}
+        socket={socket.current}
+        selectedJour={selectedCell?.jour}
+        selectedZeitslot={selectedCell?.zeitslot}
+        selectedPosition={selectedCell?.position}
+        existingSurveillance={selectedCell?.surveillance}
+      />
 
       {/* Modal de suppression de cours */}
-      <Dialog
+      <DeleteCourseModal
         open={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        PaperProps={{
-          sx: {
-            minWidth: '400px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
-          }
-        }}
-      >
-        <DialogTitle sx={{ 
-          backgroundColor: '#f5f5f5',
-          borderBottom: '1px solid #e0e0e0',
-          padding: '16px 24px',
-          fontSize: '1.25rem',
-          fontWeight: '500'
-        }}>
-          {t('planning.deleteCourse')}
-        </DialogTitle>
-        <DialogContent sx={{ padding: '24px' }}>
-          <Typography sx={{ 
-            fontSize: '1rem',
-            color: '#333',
-            marginBottom: '16px'
-          }}>
-            {t('planning.deleteCourseConfirm')}
-          </Typography>
-          <Box sx={{ 
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px'
-          }}>
-            <Button 
-              onClick={() => {
-                handleDeleteConfirm('delete');
-                setShowDeleteModal(false);
-              }}
-              variant="contained"
-              color="error"
-              sx={{
-                width: '100%',
-                textTransform: 'none',
-                fontSize: '1rem',
-                padding: '8px 16px'
-              }}
-            >
-              {t('common.delete')}
-            </Button>
-            <Button 
-              onClick={() => {
-                handleDeleteConfirm('cancel');
-                setShowDeleteModal(false);
-              }}
-              variant="contained"
-              color="warning"
-              sx={{
-                width: '100%',
-                textTransform: 'none',
-                fontSize: '1rem',
-                padding: '8px 16px'
-              }}
-            >
-              {t('planning.cancelCourse')}
-            </Button>
-            <Button 
-              onClick={() => {
-                handleDeleteConfirm('replace');
-                setShowDeleteModal(false);
-              }}
-              variant="contained"
-              color="success"
-              sx={{
-                width: '100%',
-                textTransform: 'none',
-                fontSize: '1rem',
-                padding: '8px 16px'
-              }}
-            >
-              {t('planning.replaceCourse')}
-            </Button>
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ 
-          padding: '16px 24px',
-          borderTop: '1px solid #e0e0e0',
-          backgroundColor: '#f5f5f5'
-        }}>
-          <Button 
-            onClick={() => setShowDeleteModal(false)}
-            sx={{
-              textTransform: 'none',
-              fontSize: '1rem'
-            }}
-          >
-            {t('common.cancel')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onDelete={() => handleDeleteConfirm('delete')}
+        onCancel={() => handleDeleteConfirm('cancel')}
+        onReplace={() => handleDeleteConfirm('replace')}
+        selectedCours={selectedCours}
+      />
 
       {/* Modal de remplacement */}
       <Dialog
@@ -2978,6 +2515,18 @@ function Planning() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Modal de surveillance */}
+      <AddSurveillanceModal
+        open={openSurveillanceModal}
+        onClose={() => setOpenSurveillanceModal(false)}
+        enseignants={enseignants}
+        currentWeek={currentWeek}
+        socket={socket.current}
+        selectedJour={selectedCell?.jour}
+        selectedZeitslot={selectedCell?.zeitslot}
+        selectedPosition={selectedCell?.position}
+      />
     </Box>
   );
 }

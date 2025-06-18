@@ -21,7 +21,6 @@ try {
       translation: translationDE
     }
   };
-  console.log('Ressources de traduction chargées:', resources);
 } catch (error) {
   console.error('Erreur lors du chargement des ressources:', error);
   // Fallback resources
@@ -59,7 +58,6 @@ i18n
 
 // Ajouter un écouteur pour enregistrer les changements de langue
 i18n.on('languageChanged', (lng) => {
-  console.log('Langue changée à:', lng);
   localStorage.setItem('i18nextLng', lng);
 });
 

@@ -94,14 +94,6 @@ function Planning() {
       // Si le jour est déjà en français ou traduit, on le convertit
       const result = dayMappings[translatedDay];
       
-      console.log('Conversion du jour:', { 
-        jourRecu: translatedDay,
-        resultat: result || translatedDay,
-        langue: i18n.language,
-        mappingsDisponibles: Object.keys(dayMappings),
-        joursFrancais: joursFrancais
-      });
-      
       if (!result) {
         console.warn('Jour non trouvé dans les mappings:', {
           jourRecu: translatedDay,
@@ -130,7 +122,6 @@ function Planning() {
     };
     const translatedKey = dayMappings[frenchDay] || frenchDay;
     const result = t(translatedKey);
-    console.log('Converting from French:', { frenchDay, translatedKey, result });
     return result;
   };
 
@@ -322,9 +313,7 @@ function Planning() {
 
     const initializeSocket = () => {
       if (!socket.current && isComponentMounted) {
-        console.log('Initialisation de la connexion socket...');
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        console.log('URL de l\'API:', apiUrl);
         
         if (!apiUrl) {
           console.error('L\'URL de l\'API n\'est pas définie. Veuillez configurer VITE_API_URL dans le fichier .env');
@@ -342,10 +331,7 @@ function Planning() {
             forceNew: true
           });
 
-          console.log('Configuration Socket.IO terminée');
-
           socket.current.on('connect', () => {
-            console.log('Socket connecté ! ID:', socket.current.id);
             reconnectAttempts = 0;
             if (isComponentMounted) {
               sendInitialRequests();
@@ -364,7 +350,6 @@ function Planning() {
           });
 
           socket.current.on('disconnect', (reason) => {
-            console.log('Socket déconnecté. Raison:', reason);
             if (reason === 'io server disconnect') {
               // Le serveur a forcé la déconnexion, on essaie de se reconnecter
               socket.current?.connect();
@@ -372,7 +357,6 @@ function Planning() {
           });
 
           socket.current.on('reconnect', (attemptNumber) => {
-            console.log('Socket reconnecté après', attemptNumber, 'tentatives');
             if (isComponentMounted) {
               sendInitialRequests();
             }
@@ -403,7 +387,6 @@ function Planning() {
     return () => {
       isComponentMounted = false;
       if (socket.current) {
-        console.log('Nettoyage de la connexion socket...');
         socket.current.disconnect();
         socket.current = null;
       }
@@ -412,15 +395,11 @@ function Planning() {
 
   const sendInitialRequests = () => {
     if (!socket.current?.connected) {
-      console.log('Socket non connecté, attente de la connexion...');
       return;
     }
-
-    console.log('Envoi des requêtes initiales...');
     const currentDate = new Date();
     const currentWeek = getWeekNumber(currentDate);
     const currentYear = currentDate.getFullYear();
-    console.log('Semaine:', currentWeek, 'Année:', currentYear);
 
     socket.current.emit('getPlanning', { semaine: currentWeek, annee: currentYear });
     socket.current.emit('getSurveillances', { semaine: currentWeek, annee: currentYear });
@@ -1185,16 +1164,6 @@ function Planning() {
     // Convertir le jour traduit en français pour la comparaison avec la base de données
     const frenchDay = convertToFrenchDay(jour);
     
-    console.log('Recherche des surveillances:', {
-      jourRecu: jour,
-      jourConvertiFrancais: frenchDay,
-      uhrId: uhrId,
-      semaine: getWeekNumber(currentWeek),
-      annee: currentWeek.getFullYear(),
-      toutesLesSurveillances: surveillances,
-      langue: i18n.language
-    });
-    
     const filteredSurveillances = surveillances.filter(s => {
       // Extraire uniquement le jour de la surveillance (sans la partie après le tiret si elle existe)
       const surveillanceDay = s.jour.split('-')[0];
@@ -1203,26 +1172,9 @@ function Planning() {
              s.uhr === uhrId &&
              s.semaine === getWeekNumber(currentWeek) &&
              s.annee === currentWeek.getFullYear();
-      
-      console.log('Vérification surveillance:', {
-        surveillance: s,
-        jourSurveillance: surveillanceDay,
-        jourRecherche: frenchDay,
-        correspondance: matches,
-        conditions: {
-          jourMatch: surveillanceDay === frenchDay,
-          uhrMatch: s.uhr === uhrId,
-          semaineMatch: s.semaine === getWeekNumber(currentWeek),
-          anneeMatch: s.annee === currentWeek.getFullYear()
-        }
-      });
+    
       
       return matches;
-    });
-
-    console.log('Surveillances filtrées:', {
-      nombre: filteredSurveillances.length,
-      surveillances: filteredSurveillances
     });
 
     return filteredSurveillances.sort((a, b) => a.ordre - b.ordre);
@@ -1324,52 +1276,42 @@ function Planning() {
   };
 
   const configureSocketListeners = () => {
-    console.log('Configuration des écouteurs socket...');
 
     socket.current.on('planningUpdate', (data) => {
-      console.log('Mise à jour du planning reçue:', data);
       if (data.planning) setCours(data.planning);
       if (data.surveillances) setSurveillances(data.surveillances);
       if (data.zeitslots) setUhrs(data.zeitslots);
     });
 
     socket.current.on('uhrsUpdate', (data) => {
-      console.log('Mise à jour des heures reçue:', data);
       setUhrs(data);
     });
 
     socket.current.on('enseignantsUpdate', (data) => {
-      console.log('Mise à jour des enseignants reçue:', data);
       setEnseignants(data);
     });
 
     socket.current.on('matieresUpdate', (data) => {
-      console.log('Mise à jour des matières reçue:', data);
       setMatieres(data);
     });
 
     socket.current.on('sallesUpdate', (data) => {
-      console.log('Mise à jour des salles reçue:', data);
       setSalles(data);
     });
 
     socket.current.on('surveillancesUpdate', (data) => {
-      console.log('Mise à jour des surveillances reçue:', data);
       setSurveillances(data);
     });
 
     socket.current.on('coursUpdate', (data) => {
-      console.log('Mise à jour des cours reçue:', data);
       setCours(data);
     });
 
     socket.current.on('classesUpdate', (data) => {
-      console.log('Mise à jour des classes reçue:', data);
       setClasses(data);
     });
 
     socket.current.on('annotationsUpdate', (data) => {
-      console.log('Mise à jour des annotations reçue:', data);
       setAnnotations(data);
     });
   };
@@ -1565,12 +1507,6 @@ function Planning() {
                 {jours.map((jour) => {
                   // Convertir le jour traduit en français pour la comparaison
                   const frenchDay = convertToFrenchDay(jour);
-                  console.log('Filtrage des surveillances:', {
-                    jourTraduit: jour,
-                    jourFrancais: frenchDay,
-                    langue: i18n.language,
-                    surveillancesDisponibles: surveillances
-                  });
                   
                   const daySurveillances = surveillances.filter(s => {
                     const surveillanceDay = s.jour.split('-')[0];
@@ -1578,15 +1514,6 @@ function Planning() {
                            s.position === -1 &&
                            s.semaine === getWeekNumber(currentWeek) &&
                            s.annee === currentWeek.getFullYear();
-                           
-                    console.log('Vérification surveillance:', {
-                      jourSurveillance: surveillanceDay,
-                      jourRecherche: frenchDay,
-                      position: s.position,
-                      semaine: s.semaine,
-                      semaineActuelle: getWeekNumber(currentWeek),
-                      correspondance: matches
-                    });
                     
                     return matches;
                   }).sort((a, b) => a.ordre - b.ordre);

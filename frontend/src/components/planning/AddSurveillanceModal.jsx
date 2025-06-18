@@ -61,13 +61,6 @@ const AddSurveillanceModal = ({
     const weekNumber = getWeekNumber(currentWeek);
     const frenchDay = convertToFrenchDay(newSurveillance.jour);
 
-    console.log('Adding surveillance:', {
-      original: newSurveillance,
-      frenchDay,
-      weekNumber,
-      currentYear
-    });
-
     const surveillanceData = {
       enseignant: newSurveillance.enseignant,
       lieu: newSurveillance.lieu,
@@ -79,8 +72,6 @@ const AddSurveillanceModal = ({
       type: 'entre_creneaux',
       duree: 1
     };
-
-    console.log('Surveillance data to send:', surveillanceData);
 
     if (!surveillanceData.uhr) {
       enqueueSnackbar(t('planning.surveillance.addError'), { variant: 'error' });
@@ -103,7 +94,6 @@ const AddSurveillanceModal = ({
       socket.emit('addSurveillance', surveillanceData);
 
       socket.once('surveillanceAdded', (surveillance) => {
-        console.log('Surveillance added:', surveillance);
         enqueueSnackbar(t('planning.surveillance.added'), { variant: 'success' });
         onClose();
       });

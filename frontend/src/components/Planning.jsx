@@ -1733,7 +1733,8 @@ function Planning() {
                                     minHeight: '40px',
                                     maxHeight: '120px',
                                     overflow: 'auto',
-                                    alignItems: 'flex-start'
+                                    alignItems: 'flex-start',
+                                    direction: 'rtl'
                                   }}
                                 >
                                   {coursCell.map((cours, index) => (
@@ -1759,15 +1760,22 @@ function Planning() {
                                                 {cours.salle}
                                               </Typography>
                                               {cours.commentaire && (
-                                                <Typography variant="body2" sx={{ 
-                                                  color: '#fff', 
-                                                  fontStyle: 'italic', 
-                                                  mt: 1,
-                                                  borderTop: '1px solid rgba(255,255,255,0.3)',
-                                                  pt: 1
-                                                }}>
-                                                  💬 {cours.commentaire}
-                                                </Typography>
+                                                <Box sx={{ direction: 'ltr' }}>
+                                                  <Typography variant="body2" sx={{ 
+                                                    color: '#fff', 
+                                                    fontStyle: 'italic', 
+                                                    mt: 1,
+                                                    borderTop: '1px solid rgba(255,255,255,0.3)',
+                                                    pt: 1,
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap',
+                                                    width: '100%',
+                                                    display: 'block'
+                                                  }}>
+                                                    💬 {cours.commentaire}
+                                                  </Typography>
+                                                </Box>
                                               )}
                                               {cours.annule && (
                                                 <Typography variant="body2" sx={{ color: '#fb8c00', fontWeight: 'bold' }}>
@@ -1819,8 +1827,8 @@ function Planning() {
                                               cursor: 'grab',
                                               boxShadow: snapshot.isDragging ? '0 2px 4px rgba(0,0,0,0.1)' : 'none',
                                               zIndex: snapshot.isDragging ? 1000 : 'auto',
-                                              width: snapshot.isDragging ? '200px' : '100%',
-                                              maxWidth: '100%',
+                                              width: snapshot.isDragging ? '200px' : '200px',
+                                              maxWidth: '200px',
                                               height: 'auto',
                                               maxHeight: '120px',
                                               minHeight: '40px',
@@ -1831,7 +1839,7 @@ function Planning() {
                                             }}
                                           >
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                                              <Box sx={{ flex: 1 }}>
+                                              <Box sx={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                                                 <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                                                   {cours.classe}
                                                 </Typography>
@@ -1845,15 +1853,22 @@ function Planning() {
                                                   {cours.salle}
                                                 </Typography>
                                                 {cours.commentaire && (
-                                                  <Typography variant="body2" sx={{ 
-                                                    color: '#fff', 
-                                                    fontStyle: 'italic', 
-                                                    mt: 1,
-                                                    borderTop: '1px solid rgba(255,255,255,0.3)',
-                                                    pt: 1
-                                                  }}>
-                                                    💬 {cours.commentaire}
-                                                  </Typography>
+                                                  <Box sx={{ direction: 'ltr' }}>
+                                                    <Typography variant="body2" sx={{ 
+                                                      color: '#fff', 
+                                                      fontStyle: 'italic', 
+                                                      mt: 1,
+                                                      borderTop: '1px solid rgba(255,255,255,0.3)',
+                                                      pt: 1,
+                                                      overflow: 'hidden',
+                                                      textOverflow: 'ellipsis',
+                                                      whiteSpace: 'nowrap',
+                                                      width: '100%',
+                                                      display: 'block'
+                                                    }}>
+                                                      💬 {cours.commentaire}
+                                                    </Typography>
+                                                  </Box>
                                                 )}
                                               </Box>
                                               <IconButton
@@ -1866,7 +1881,8 @@ function Planning() {
                                                 }}
                                                 sx={{ 
                                                   color: cours.annule || cours.remplace ? 'inherit' : 'white',
-                                                  marginLeft: '0px'
+                                                  marginLeft: '8px',
+                                                  flexShrink: 0
                                                 }}
                                               >
                                                 <DeleteIcon fontSize="small" />

@@ -1733,8 +1733,7 @@ function Planning() {
                                     minHeight: '40px',
                                     maxHeight: '120px',
                                     overflow: 'auto',
-                                    alignItems: 'flex-start',
-                                    direction: 'rtl'
+                                    alignItems: 'flex-start'
                                   }}
                                 >
                                   {coursCell.map((cours, index) => (

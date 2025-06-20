@@ -230,6 +230,7 @@ function App() {
           sx={{
             ...menuItemStyle(''),
             color: theme.palette.error.main,
+            cursor: 'pointer',
             '&:hover': {
               backgroundColor: alpha(theme.palette.error.main, 0.1)
             }

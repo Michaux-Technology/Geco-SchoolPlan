@@ -114,7 +114,14 @@
       "updated": "Supervision successfully updated",
       "deleted": "Supervision successfully deleted",
       "addError": "Error adding supervision"
-    }
+    },
+    "annotationSaved": "Annotation saved",
+    "annotationError": "Error saving annotation",
+    "comment": "Comment",
+    "commentPlaceholder": "Add an optional comment...",
+    "editComment": "Edit comment",
+    "commentUpdated": "Comment updated successfully",
+    "commentUpdateError": "Error updating comment"
   },
   "auth": {
     "login": "Login",

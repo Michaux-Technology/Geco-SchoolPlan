@@ -117,7 +117,12 @@
       "addError": "Erreur lors de l'ajout de la surveillance"
     },
     "annotationSaved": "Annotation sauvegardée",
-    "annotationError": "Erreur lors de la sauvegarde de l'annotation"
+    "annotationError": "Erreur lors de la sauvegarde de l'annotation",
+    "comment": "Commentaire",
+    "commentPlaceholder": "Ajouter un commentaire optionnel...",
+    "editComment": "Modifier le commentaire",
+    "commentUpdated": "Commentaire mis à jour avec succès",
+    "commentUpdateError": "Erreur lors de la mise à jour du commentaire"
   },
   "auth": {
     "login": "Connexion",

@@ -114,7 +114,14 @@
       "updated": "Aufsicht erfolgreich aktualisiert",
       "deleted": "Aufsicht erfolgreich gelöscht",
       "addError": "Fehler beim Hinzufügen der Aufsicht"
-    }
+    },
+    "annotationSaved": "Anmerkung gespeichert",
+    "annotationError": "Fehler beim Speichern der Anmerkung",
+    "comment": "Kommentar",
+    "commentPlaceholder": "Einen optionalen Kommentar hinzufügen...",
+    "editComment": "Kommentar bearbeiten",
+    "commentUpdated": "Kommentar erfolgreich aktualisiert",
+    "commentUpdateError": "Fehler beim Aktualisieren des Kommentars"
   },
   "auth": {
     "login": "Anmelden",

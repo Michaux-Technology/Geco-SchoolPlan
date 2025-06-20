@@ -320,7 +320,18 @@ app.get('/api/cours', async (req, res) => {
 app.post('/api/cours', async (req, res) => {
   try {
     const coursData = req.body;
-    const newCours = await Cours.create(coursData);
+    const newCours = await Cours.create({
+      classe: coursData.classe,
+      enseignants: coursData.enseignants,
+      matiere: coursData.matiere,
+      salle: coursData.salle,
+      jour: coursData.jour,
+      heure: coursData.heure,
+      uhr: coursData.uhr,
+      semaine: coursData.semaine,
+      annee: coursData.annee || new Date().getFullYear(),
+      commentaire: coursData.commentaire || ''
+    });
     res.status(201).json(newCours);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -779,7 +790,8 @@ io.on('connection', (socket) => {
         heure: coursData.heure,
         uhr: coursData.uhr,
         semaine: coursData.semaine,
-        annee: coursData.annee || new Date().getFullYear()
+        annee: coursData.annee || new Date().getFullYear(),
+        commentaire: coursData.commentaire || ''
       });
 
       console.log('Nouveau cours créé:', newCours);
@@ -862,7 +874,8 @@ io.on('connection', (socket) => {
             annee: targetYear,
             annule: coursData.annule || false,
             remplace: coursData.remplace || false,
-            remplacementInfo: coursData.remplacementInfo || ''
+            remplacementInfo: coursData.remplacementInfo || '',
+            commentaire: coursData.commentaire || ''
           });
           
           successCount++;

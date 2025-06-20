@@ -113,6 +113,17 @@ const AddCourseModal = ({
           </Select>
         </FormControl>
 
+        <TextField
+          fullWidth
+          margin="normal"
+          label={t('planning.comment', 'Commentaire')}
+          value={formData.commentaire || ''}
+          onChange={(e) => setFormData({ ...formData, commentaire: e.target.value })}
+          multiline
+          rows={3}
+          placeholder={t('planning.commentPlaceholder', 'Ajouter un commentaire optionnel...')}
+        />
+
         {error && (
           <Typography color="error" sx={{ mt: 2 }}>
             {error}

@@ -26,11 +26,16 @@ import {
   InputLabel,
   Chip
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import ContentPasteIcon from '@mui/icons-material/ContentPaste';
-import StarIcon from '@mui/icons-material/Star';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
+import { 
+  Add as AddIcon, 
+  Delete as DeleteIcon, 
+  Edit as EditIcon,
+  Comment as CommentIcon,
+  ContentCopy as ContentCopyIcon,
+  ContentPaste as ContentPasteIcon,
+  Star as StarIcon,
+  StarBorder as StarBorderIcon
+} from '@mui/icons-material';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import './Planning.css';
 import { useTranslation } from 'react-i18next';
@@ -38,6 +43,7 @@ import { useSnackbar } from 'notistack';
 import AddCourseModal from './planning/AddCourseModal';
 import DeleteCourseModal from './planning/DeleteCourseModal';
 import AddSurveillanceModal from './planning/AddSurveillanceModal';
+import EditCommentModal from './planning/EditCommentModal';
 import PlanningFilters from './planning/PlanningFilters';
 import WeekSelector from './planning/WeekSelector';
 import AnnotationEditor from './planning/AnnotationEditor';
@@ -157,7 +163,8 @@ function Planning() {
     salle: '',
     jour: '',
     uhr: '',
-    semaine: 1
+    semaine: 1,
+    commentaire: ''
   });
   const [error, setError] = useState('');
   const [isAddTimeModalOpen, setIsAddTimeModalOpen] = useState(false);
@@ -227,6 +234,11 @@ function Planning() {
   const [showAllSalles, setShowAllSalles] = useState(false);
   const [showAllEnseignants, setShowAllEnseignants] = useState(false);
   const [openSurveillanceModal, setOpenSurveillanceModal] = useState(false);
+
+  // États pour l'édition des commentaires
+  const [showEditCommentModal, setShowEditCommentModal] = useState(false);
+  const [editingComment, setEditingComment] = useState('');
+  const [commentError, setCommentError] = useState('');
 
   const heures = ['7:45 - 8:25', '8:25 - 9:05', '9:05 - 9:45', '9:45 - 10:25', '10:25 - 11:05', '11:05 - 11:45', '11:45 - 12:25'];
 
@@ -776,7 +788,8 @@ function Planning() {
       heure: `${uhr.start} - ${uhr.ende}`,
       uhr: selectedCell.zeitslot._id,
       semaine: getWeekNumber(currentWeek),
-      annee: currentWeek.getFullYear()
+      annee: currentWeek.getFullYear(),
+      commentaire: formData.commentaire || ''
     };
 
     // Fermer le modal immédiatement
@@ -788,7 +801,8 @@ function Planning() {
       salle: '',
       jour: '',
       uhr: '',
-      semaine: 1
+      semaine: 1,
+      commentaire: ''
     });
     setError('');
 
@@ -1258,13 +1272,7 @@ function Planning() {
 
   // Dans le modal de surveillance
   const handleSurveillanceClick = (surveillance, jour) => {
-    setSelectedCell({ 
-      jour, 
-      zeitslot: uhrs.find(u => u._id === surveillance.uhr),
-      isSurveillance: true,
-      position: surveillance.position,
-      surveillance
-    });
+    setSelectedCours(surveillance);
     setNewSurveillance({
       enseignant: surveillance.enseignant,
       lieu: surveillance.lieu,
@@ -1273,6 +1281,41 @@ function Planning() {
       zeitslot: uhrs.find(u => u._id === surveillance.uhr)
     });
     setShowSurveillanceModal(true);
+  };
+
+  // Fonctions pour l'édition des commentaires
+  const handleEditComment = (cours) => {
+    setSelectedCours(cours);
+    setEditingComment(cours.commentaire || '');
+    setCommentError('');
+    setShowEditCommentModal(true);
+  };
+
+  const handleCloseEditCommentModal = () => {
+    setShowEditCommentModal(false);
+    setEditingComment('');
+    setCommentError('');
+    setSelectedCours(null);
+  };
+
+  const handleSubmitEditComment = () => {
+    if (!selectedCours) return;
+
+    // Mettre à jour le cours avec le nouveau commentaire
+    const updatedCours = {
+      ...selectedCours,
+      commentaire: editingComment
+    };
+
+    if (socket.current?.connected) {
+      socket.current.emit('updateCours', updatedCours);
+      
+      // Fermer le modal immédiatement après l'envoi
+      enqueueSnackbar(t('planning.commentUpdated', 'Commentaire mis à jour avec succès'), { variant: 'success' });
+      handleCloseEditCommentModal();
+    } else {
+      setCommentError(t('planning.connectionError', 'Erreur de connexion au serveur'));
+    }
   };
 
   const configureSocketListeners = () => {
@@ -1716,6 +1759,17 @@ function Planning() {
                                               <Typography variant="body2">
                                                 {cours.salle}
                                               </Typography>
+                                              {cours.commentaire && (
+                                                <Typography variant="body2" sx={{ 
+                                                  color: '#fff', 
+                                                  fontStyle: 'italic', 
+                                                  mt: 1,
+                                                  borderTop: '1px solid rgba(255,255,255,0.3)',
+                                                  pt: 1
+                                                }}>
+                                                  💬 {cours.commentaire}
+                                                </Typography>
+                                              )}
                                               {cours.annule && (
                                                 <Typography variant="body2" sx={{ color: '#fb8c00', fontWeight: 'bold' }}>
                                                   Cours annulé
@@ -1726,6 +1780,26 @@ function Planning() {
                                                   {cours.remplacementInfo}
                                                 </Typography>
                                               )}
+                                              <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+                                                <Button
+                                                  size="small"
+                                                  variant="outlined"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleEditComment(cours);
+                                                  }}
+                                                  sx={{ 
+                                                    color: '#fff', 
+                                                    borderColor: '#fff',
+                                                    '&:hover': {
+                                                      borderColor: '#fff',
+                                                      backgroundColor: 'rgba(255,255,255,0.1)'
+                                                    }
+                                                  }}
+                                                >
+                                                  {t('planning.editComment', 'Modifier le commentaire')}
+                                                </Button>
+                                              </Box>
                                             </Box>
                                           }
                                           arrow
@@ -1771,6 +1845,17 @@ function Planning() {
                                                 <Typography variant="body2">
                                                   {cours.salle}
                                                 </Typography>
+                                                {cours.commentaire && (
+                                                  <Typography variant="body2" sx={{ 
+                                                    color: '#fff', 
+                                                    fontStyle: 'italic', 
+                                                    mt: 1,
+                                                    borderTop: '1px solid rgba(255,255,255,0.3)',
+                                                    pt: 1
+                                                  }}>
+                                                    💬 {cours.commentaire}
+                                                  </Typography>
+                                                )}
                                               </Box>
                                               <IconButton
                                                 size="small"
@@ -2453,6 +2538,17 @@ function Planning() {
         selectedJour={selectedCell?.jour}
         selectedZeitslot={selectedCell?.zeitslot}
         selectedPosition={selectedCell?.position}
+      />
+
+      {/* Modal pour éditer les commentaires */}
+      <EditCommentModal
+        open={showEditCommentModal}
+        onClose={handleCloseEditCommentModal}
+        onSubmit={handleSubmitEditComment}
+        comment={editingComment}
+        setComment={setEditingComment}
+        error={commentError}
+        selectedCours={selectedCours}
       />
     </Box>
   );

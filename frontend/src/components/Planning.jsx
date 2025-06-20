@@ -831,6 +831,48 @@ function Planning() {
     });
   };
 
+  // Fonction de filtrage des surveillances
+  const getFilteredSurveillances = () => {
+    return surveillances.filter(surveillance => {
+      // Si aucun enseignant n'est sélectionné, afficher toutes les surveillances
+      if (!selectedEnseignant) {
+        return true;
+      }
+      
+      // Trouver l'enseignant sélectionné par son ID pour obtenir son nom
+      const selectedEnseignantObj = enseignants.find(e => e._id === selectedEnseignant);
+      if (!selectedEnseignantObj) {
+        return false;
+      }
+      
+      // Vérifier si l'enseignant de la surveillance correspond à l'enseignant sélectionné
+      return surveillance.enseignant === selectedEnseignantObj.nom;
+    });
+  };
+
+  // Fonction pour obtenir les surveillances filtrées pour une position spécifique
+  const getFilteredSurveillancesForPosition = (jour, position, uhrId = null) => {
+    const frenchDay = convertToFrenchDay(jour);
+    
+    return getFilteredSurveillances().filter(s => {
+      const surveillanceDay = s.jour.split('-')[0];
+      
+      // Si uhrId est fourni, vérifier aussi l'uhr
+      if (uhrId) {
+        return surveillanceDay === frenchDay && 
+               s.position === position &&
+               s.uhr === uhrId &&
+               s.semaine === getWeekNumber(currentWeek) &&
+               s.annee === currentWeek.getFullYear();
+      } else {
+        return surveillanceDay === frenchDay && 
+               s.position === position &&
+               s.semaine === getWeekNumber(currentWeek) &&
+               s.annee === currentWeek.getFullYear();
+      }
+    }).sort((a, b) => a.ordre - b.ordre);
+  };
+
   const getCoursForCell = (jour, uhrId) => {
     const filteredCours = getFilteredCours();
     const uhr = uhrs.find(u => u._id === uhrId);
@@ -1178,7 +1220,9 @@ function Planning() {
     // Convertir le jour traduit en français pour la comparaison avec la base de données
     const frenchDay = convertToFrenchDay(jour);
     
-    const filteredSurveillances = surveillances.filter(s => {
+    const filteredSurveillances = getFilteredSurveillances();
+    
+    const cellSurveillances = filteredSurveillances.filter(s => {
       // Extraire uniquement le jour de la surveillance (sans la partie après le tiret si elle existe)
       const surveillanceDay = s.jour.split('-')[0];
       
@@ -1191,7 +1235,7 @@ function Planning() {
       return matches;
     });
 
-    return filteredSurveillances.sort((a, b) => a.ordre - b.ordre);
+    return cellSurveillances.sort((a, b) => a.ordre - b.ordre);
   };
 
   // Fonction pour obtenir les salles disponibles pour un créneau horaire
@@ -1273,6 +1317,13 @@ function Planning() {
   // Dans le modal de surveillance
   const handleSurveillanceClick = (surveillance, jour) => {
     setSelectedCours(surveillance);
+    setSelectedCell({ 
+      jour, 
+      zeitslot: uhrs.find(u => u._id === surveillance.uhr),
+      isSurveillance: true,
+      position: surveillance.position,
+      surveillance: surveillance
+    });
     setNewSurveillance({
       enseignant: surveillance.enseignant,
       lieu: surveillance.lieu,
@@ -1551,15 +1602,7 @@ function Planning() {
                   // Convertir le jour traduit en français pour la comparaison
                   const frenchDay = convertToFrenchDay(jour);
                   
-                  const daySurveillances = surveillances.filter(s => {
-                    const surveillanceDay = s.jour.split('-')[0];
-                    const matches = surveillanceDay === frenchDay && 
-                           s.position === -1 &&
-                           s.semaine === getWeekNumber(currentWeek) &&
-                           s.annee === currentWeek.getFullYear();
-                    
-                    return matches;
-                  }).sort((a, b) => a.ordre - b.ordre);
+                  const daySurveillances = getFilteredSurveillancesForPosition(jour, -1);
 
                   return (
                     <TableCell 
@@ -1582,11 +1625,11 @@ function Planning() {
                             {...provided.droppableProps}
                             style={{ height: '100%' }}
                           >
-                            {daySurveillances.map((surveillance, index) => (
+                            {daySurveillances.map((surveillance, surveillanceIndex) => (
                               <Draggable
                                 key={surveillance._id}
                                 draggableId={surveillance._id}
-                                index={index}
+                                index={surveillanceIndex}
                               >
                                 {(provided, snapshot) => (
                                   <div
@@ -1936,13 +1979,7 @@ function Planning() {
                         // Convertir le jour traduit en français pour la comparaison
                         const frenchDay = convertToFrenchDay(jour);
                         
-                        const daySurveillances = surveillances.filter(s => {
-                          const surveillanceDay = s.jour.split('-')[0];
-                          return surveillanceDay === frenchDay && 
-                                 s.position === index &&
-                                 s.semaine === getWeekNumber(currentWeek) &&
-                                 s.annee === currentWeek.getFullYear();
-                        }).sort((a, b) => a.ordre - b.ordre);
+                        const daySurveillances = getFilteredSurveillancesForPosition(jour, index, uhr._id);
 
                         return (
                           <TableCell 
@@ -1965,11 +2002,11 @@ function Planning() {
                                   {...provided.droppableProps}
                                   style={{ height: '100%' }}
                                 >
-                                  {daySurveillances.map((surveillance, index) => (
+                                  {daySurveillances.map((surveillance, surveillanceIndex) => (
                                     <Draggable
                                       key={surveillance._id}
                                       draggableId={surveillance._id}
-                                      index={index}
+                                      index={surveillanceIndex}
                                     >
                                       {(provided, snapshot) => (
                                         <div
@@ -2016,7 +2053,7 @@ function Planning() {
                     }}
                   />
                   {jours.map((jour) => {
-                    const surveillances = getSurveillancesForCell(jour, uhrs[uhrs.length - 1]._id);
+                    const surveillances = getFilteredSurveillancesForPosition(jour, uhrs.length, uhrs[uhrs.length - 1]._id);
                     return (
                       <TableCell 
                         key={`${jour}-after`}
@@ -2040,11 +2077,11 @@ function Planning() {
                               {...provided.droppableProps}
                               style={{ height: '100%' }}
                             >
-                              {surveillances.map((surveillance, index) => (
+                              {surveillances.map((surveillance, surveillanceIndex) => (
                                 <Draggable
                                   key={surveillance._id}
                                   draggableId={surveillance._id}
-                                  index={index}
+                                  index={surveillanceIndex}
                                 >
                                   {(provided, snapshot) => (
                                     <div

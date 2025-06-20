@@ -47,8 +47,16 @@ const AddSurveillanceModal = ({
         position: existingSurveillance.position,
         zeitslot: selectedZeitslot
       });
+    } else {
+      // Pour une nouvelle surveillance, mettre à jour avec les données sélectionnées
+      setNewSurveillance(prev => ({
+        ...prev,
+        jour: selectedJour || prev.jour,
+        position: selectedPosition || prev.position,
+        zeitslot: selectedZeitslot || prev.zeitslot
+      }));
     }
-  }, [existingSurveillance, selectedJour, selectedZeitslot]);
+  }, [existingSurveillance, selectedJour, selectedZeitslot, selectedPosition]);
 
   const handleAddSurveillance = () => {
     if (!socket) {
@@ -59,7 +67,16 @@ const AddSurveillanceModal = ({
 
     const currentYear = new Date().getFullYear();
     const weekNumber = getWeekNumber(currentWeek);
-    const frenchDay = convertToFrenchDay(newSurveillance.jour);
+    const frenchDay = convertToFrenchDay(selectedJour || newSurveillance.jour);
+
+    console.log('Debug - Données pour surveillance:', {
+      selectedJour,
+      newSurveillanceJour: newSurveillance.jour,
+      frenchDay,
+      currentYear,
+      weekNumber,
+      newSurveillance
+    });
 
     const surveillanceData = {
       enseignant: newSurveillance.enseignant,
@@ -73,8 +90,36 @@ const AddSurveillanceModal = ({
       duree: 1
     };
 
+    console.log('Debug - surveillanceData envoyé:', surveillanceData);
+
+    // Validation des champs requis
+    if (!surveillanceData.enseignant) {
+      enqueueSnackbar('L\'enseignant est requis', { variant: 'error' });
+      return;
+    }
+
+    if (!surveillanceData.lieu) {
+      enqueueSnackbar('Le lieu est requis', { variant: 'error' });
+      return;
+    }
+
+    if (!surveillanceData.jour) {
+      enqueueSnackbar('Le jour est requis', { variant: 'error' });
+      return;
+    }
+
     if (!surveillanceData.uhr) {
-      enqueueSnackbar(t('planning.surveillance.addError'), { variant: 'error' });
+      enqueueSnackbar('Le créneau horaire est requis', { variant: 'error' });
+      return;
+    }
+
+    if (!surveillanceData.semaine) {
+      enqueueSnackbar('La semaine est requise', { variant: 'error' });
+      return;
+    }
+
+    if (!surveillanceData.annee) {
+      enqueueSnackbar('L\'année est requise', { variant: 'error' });
       return;
     }
 

@@ -706,6 +706,7 @@ function Planning() {
       } else if (destination.droppableId.includes('after')) {
         newPosition = uhrs.length;
       } else {
+        // Pour les positions entre les heures, utiliser l'index de la ligne
         newPosition = parseInt(destination.droppableId.split('-')[1]) || 0;
       }
 
@@ -866,14 +867,13 @@ function Planning() {
         return true;
       }
       
-      // Trouver l'enseignant sélectionné par son ID pour obtenir son nom
-      const selectedEnseignantObj = enseignants.find(e => e._id === selectedEnseignant);
-      if (!selectedEnseignantObj) {
-        return false;
-      }
-      
       // Vérifier si l'enseignant de la surveillance correspond à l'enseignant sélectionné
-      return surveillance.enseignant === selectedEnseignantObj.nom;
+      // surveillance.enseignant peut être un objet (avec population) ou un ID
+      const surveillanceEnseignantId = typeof surveillance.enseignant === 'object' 
+        ? surveillance.enseignant._id 
+        : surveillance.enseignant;
+      
+      return surveillanceEnseignantId === selectedEnseignant;
     });
   };
 
@@ -1329,9 +1329,13 @@ function Planning() {
 
   // Dans le rendu des surveillances
   const renderSurveillance = (surveillance) => {
-    // Trouver l'enseignant correspondant à l'ID
-    const enseignant = enseignants.find(e => e._id === surveillance.enseignant);
-    const nomEnseignant = enseignant ? enseignant.nom : surveillance.enseignant;
+    // surveillance.enseignant peut être un objet (avec population) ou un ID
+    const nomEnseignant = typeof surveillance.enseignant === 'object' 
+      ? surveillance.enseignant.nom 
+      : (() => {
+          const enseignant = enseignants.find(e => e._id === surveillance.enseignant);
+          return enseignant ? enseignant.nom : surveillance.enseignant;
+        })();
 
     return (
       <div className="surveillance-info">
@@ -1352,7 +1356,7 @@ function Planning() {
       surveillance: surveillance
     });
     setNewSurveillance({
-      enseignant: surveillance.enseignant,
+      enseignant: typeof surveillance.enseignant === 'object' ? surveillance.enseignant._id : surveillance.enseignant,
       lieu: surveillance.lieu,
       jour: jour,
       position: surveillance.position,
@@ -1626,10 +1630,15 @@ function Planning() {
                   </Box>
                 </TableCell>
                 {jours.map((jour) => {
-                  // Convertir le jour traduit en français pour la comparaison
+                  // Afficher uniquement les surveillances de position -1 (avant la première heure)
                   const frenchDay = convertToFrenchDay(jour);
-                  
-                  const daySurveillances = getFilteredSurveillancesForPosition(jour, -1);
+                  const daySurveillances = getFilteredSurveillances().filter(s => {
+                    const surveillanceDay = s.jour.split('-')[0];
+                    return surveillanceDay === frenchDay && 
+                           s.position === -1 &&
+                           s.semaine === getWeekNumber(currentWeek) &&
+                           s.annee === currentWeek.getFullYear();
+                  }).sort((a, b) => a.ordre - b.ordre);
 
                   return (
                     <TableCell 
@@ -2003,10 +2012,15 @@ function Planning() {
                         </Box>
                       </TableCell>
                       {jours.map((jour) => {
-                        // Convertir le jour traduit en français pour la comparaison
+                        // Afficher uniquement les surveillances de position correspondant à l'index de la ligne
                         const frenchDay = convertToFrenchDay(jour);
-                        
-                        const daySurveillances = getFilteredSurveillancesForPosition(jour, index, uhr._id);
+                        const daySurveillances = getFilteredSurveillances().filter(s => {
+                          const surveillanceDay = s.jour.split('-')[0];
+                          return surveillanceDay === frenchDay && 
+                                 s.position === index &&
+                                 s.semaine === getWeekNumber(currentWeek) &&
+                                 s.annee === currentWeek.getFullYear();
+                        }).sort((a, b) => a.ordre - b.ordre);
 
                         return (
                           <TableCell 
@@ -2078,9 +2092,29 @@ function Planning() {
                       borderRight: '1px solid #e0e0e0',
                       padding: '8px'
                     }}
-                  />
+                  >
+                    <Box sx={{ 
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      color: '#1976d2',
+                      fontWeight: 'bold'
+                    }}>
+                      Surveillance
+                    </Box>
+                  </TableCell>
                   {jours.map((jour) => {
-                    const surveillances = getFilteredSurveillancesForPosition(jour, uhrs.length, uhrs[uhrs.length - 1]._id);
+                    // Afficher uniquement les surveillances de position uhrs.length (après la dernière heure)
+                    const frenchDay = convertToFrenchDay(jour);
+                    const surveillances = getFilteredSurveillances().filter(s => {
+                      const surveillanceDay = s.jour.split('-')[0];
+                      return surveillanceDay === frenchDay && 
+                             s.position === uhrs.length &&
+                             s.semaine === getWeekNumber(currentWeek) &&
+                             s.annee === currentWeek.getFullYear();
+                    }).sort((a, b) => a.ordre - b.ordre);
+                    
                     return (
                       <TableCell 
                         key={`${jour}-after`}

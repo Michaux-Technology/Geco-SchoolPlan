@@ -91,7 +91,7 @@ let uhrs = [];
 async function loadData() {
   try {
     planning = await Planning.find();
-    surveillances = await Surveillance.find();
+    surveillances = await Surveillance.find().populate('enseignant');
     zeitslots = await Uhr.find();
     enseignants = await Enseignant.find();
     cours = await Cours.find();
@@ -607,10 +607,10 @@ const sendTeacherUpdate = async (socket, enseignantId) => {
     console.log(`📚 Cours trouvés pour l'enseignant (semaine ${currentWeek}): ${enseignantCours.length}`);
     
     const enseignantSurveillances = await Surveillance.find({
-      enseignantId: enseignantId.toString(),
+      enseignant: enseignantId.toString(),
       semaine: currentWeek,
       annee: currentYear
-    }).populate('classe salle uhr');
+    }).populate('enseignant uhr');
     
     console.log(`👁️ Surveillances trouvées pour l'enseignant (semaine ${currentWeek}): ${enseignantSurveillances.length}`);
     
@@ -673,10 +673,10 @@ io.on('connection', (socket) => {
       console.log(`📚 Cours trouvés pour l'enseignant (semaine ${currentWeek}): ${enseignantCours.length}`);
       
       const enseignantSurveillances = await Surveillance.find({
-        enseignantId: subscribedEnseignantId.toString(),
+        enseignant: subscribedEnseignantId.toString(),
         semaine: currentWeek,
         annee: currentYear
-      }).populate('classe salle uhr');
+      }).populate('enseignant uhr');
       
       console.log(`👁️ Surveillances trouvées pour l'enseignant (semaine ${currentWeek}): ${enseignantSurveillances.length}`);
       
@@ -959,7 +959,7 @@ io.on('connection', (socket) => {
       console.log('Nouvelle surveillance créée:', JSON.stringify(newSurveillance, null, 2));
       
       console.log('Récupération de la liste mise à jour des surveillances...');
-      surveillances = await Surveillance.find({});
+      surveillances = await Surveillance.find({}).populate('enseignant');
       console.log('Liste mise à jour des surveillances:', JSON.stringify(surveillances, null, 2));
       
       console.log('Envoi de la mise à jour aux clients...');
@@ -979,7 +979,7 @@ io.on('connection', (socket) => {
         surveillanceData,
         { new: true }
       );
-      surveillances = await Surveillance.find({});
+      surveillances = await Surveillance.find({}).populate('enseignant');
       io.emit('planningUpdate', { surveillances });
     } catch (error) {
       socket.emit('error', error.message);
@@ -989,7 +989,7 @@ io.on('connection', (socket) => {
   socket.on('deleteSurveillance', async (surveillanceId) => {
     try {
       await Surveillance.findByIdAndDelete(surveillanceId);
-      surveillances = await Surveillance.find({});
+      surveillances = await Surveillance.find({}).populate('enseignant');
       io.emit('planningUpdate', { surveillances });
     } catch (error) {
       socket.emit('error', error.message);
@@ -1537,10 +1537,40 @@ app.post('/api/surveillances', async (req, res) => {
       return;
     }
     const newSurveillance = await Surveillance.create(surveillanceData);
-    const surveillances = await Surveillance.find();
+    const surveillances = await Surveillance.find({}).populate('enseignant');
     io.emit('surveillancesUpdate', surveillances);
     res.status(201).json(newSurveillance);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Route pour récupérer les surveillances entre créneaux d'un enseignant
+app.get('/api/mobile/surveillances/enseignant/:enseignantId', async (req, res) => {
+  try {
+    const { enseignantId } = req.params;
+    const { semaine, annee } = req.query;
+
+    console.log('Requête reçue pour /api/mobile/surveillances/enseignant/:enseignantId');
+    console.log('Paramètres:', { enseignantId, semaine, annee });
+
+    if (!enseignantId) {
+      return res.status(400).json({ error: 'ID de l\'enseignant requis' });
+    }
+
+    console.log(`Recherche des surveillances pour enseignant ${enseignantId}, semaine ${semaine}, année ${annee}`);
+
+    // Rechercher les surveillances de l'enseignant
+    const surveillances = await Surveillance.find({
+      enseignant: enseignantId.toString(),
+      semaine: parseInt(semaine),
+      annee: parseInt(annee)
+    }).populate('uhr');
+
+    console.log(`Retour de ${surveillances.length} surveillances pour cet enseignant`);
+    res.json(surveillances);
+  } catch (error) {
+    console.error('Erreur lors de la récupération des surveillances de l\'enseignant:', error);
+    res.status(500).json({ error: 'Erreur lors de la récupération des surveillances' });
   }
 });

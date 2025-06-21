@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 const surveillanceSchema = new mongoose.Schema({
   enseignant: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Enseignant',
     required: true
   },
   lieu: {

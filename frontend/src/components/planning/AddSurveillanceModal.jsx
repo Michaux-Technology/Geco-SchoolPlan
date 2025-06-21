@@ -32,16 +32,18 @@ const AddSurveillanceModal = ({
   const [newSurveillance, setNewSurveillance] = useState({
     enseignant: '',
     lieu: '',
-    jour: selectedJour || '',
-    position: selectedPosition || -1,
-    zeitslot: selectedZeitslot || null
+    jour: '',
+    position: -1,
+    zeitslot: null
   });
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (existingSurveillance) {
       setNewSurveillance({
-        enseignant: existingSurveillance.enseignant,
+        enseignant: typeof existingSurveillance.enseignant === 'object' 
+          ? existingSurveillance.enseignant._id 
+          : existingSurveillance.enseignant,
         lieu: existingSurveillance.lieu,
         jour: selectedJour,
         position: existingSurveillance.position,
@@ -238,7 +240,7 @@ const AddSurveillanceModal = ({
             label={t('planning.surveillance.teacher')}
           >
             {enseignants.map((enseignant) => (
-              <MenuItem key={enseignant._id} value={enseignant.nom}>
+              <MenuItem key={enseignant._id} value={enseignant._id}>
                 {enseignant.nom}
               </MenuItem>
             ))}

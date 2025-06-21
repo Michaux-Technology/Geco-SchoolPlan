@@ -121,7 +121,10 @@
     "commentPlaceholder": "Add an optional comment...",
     "editComment": "Edit comment",
     "commentUpdated": "Comment updated successfully",
-    "commentUpdateError": "Error updating comment"
+    "commentUpdateError": "Error updating comment",
+    "surveillanceDropError": "Surveillances can only be dropped in surveillance zones",
+    "courseDropError": "Courses can only be dropped in course zones",
+    "connectionError": "Server connection error"
   },
   "auth": {
     "login": "Login",

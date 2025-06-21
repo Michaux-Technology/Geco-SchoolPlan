@@ -121,7 +121,10 @@
     "commentPlaceholder": "Einen optionalen Kommentar hinzufügen...",
     "editComment": "Kommentar bearbeiten",
     "commentUpdated": "Kommentar erfolgreich aktualisiert",
-    "commentUpdateError": "Fehler beim Aktualisieren des Kommentars"
+    "commentUpdateError": "Fehler beim Aktualisieren des Kommentars",
+    "surveillanceDropError": "Aufsichten können nur in Aufsichtszonen abgelegt werden",
+    "courseDropError": "Kurse können nur in Kurszonen abgelegt werden",
+    "connectionError": "Serververbindungsfehler"
   },
   "auth": {
     "login": "Anmelden",

@@ -685,12 +685,26 @@ function Planning() {
       const surveillance = surveillances.find(s => s._id === draggableId);
       if (!surveillance) return;
 
+      // Vérifier si la destination est une zone de surveillance valide
+      const destinationId = destination.droppableId;
+      const isSurveillanceZone = destinationId.includes('before') || 
+                                 destinationId.includes('after') || 
+                                 /^[^-]+-\d+$/.test(destinationId); // Format: jour-index (sans uhr._id)
+
+      if (!isSurveillanceZone) {
+        console.warn('Tentative de glisser une surveillance dans une zone de cours non autorisée:', destinationId);
+        enqueueSnackbar(t('planning.surveillanceDropError', 'Les surveillances ne peuvent être glissées que dans les zones de surveillance'), { variant: 'error' });
+        return;
+      }
+
       const sourceDay = source.droppableId.split('-')[0];
       const destinationDay = destination.droppableId.split('-')[0];
       
       let newPosition = -1;
       if (destination.droppableId.includes('before')) {
         newPosition = -1;
+      } else if (destination.droppableId.includes('after')) {
+        newPosition = uhrs.length;
       } else {
         newPosition = parseInt(destination.droppableId.split('-')[1]) || 0;
       }
@@ -708,6 +722,19 @@ function Planning() {
       // Gestion des cours
       const coursToMove = cours.find(c => c._id === draggableId);
       if (!coursToMove) return;
+
+      // Vérifier si la destination est une zone de cours valide
+      const destinationId = destination.droppableId;
+      const isCourseZone = /^[^-]+-[a-zA-Z0-9]+$/.test(destinationId) && 
+                          !destinationId.includes('before') && 
+                          !destinationId.includes('after') &&
+                          !/^[^-]+-\d+$/.test(destinationId); // Pas le format jour-index
+
+      if (!isCourseZone) {
+        console.warn('Tentative de glisser un cours dans une zone de surveillance non autorisée:', destinationId);
+        enqueueSnackbar(t('planning.courseDropError', 'Les cours ne peuvent être glissés que dans les zones de cours'), { variant: 'error' });
+        return;
+      }
 
       const [sourceDay, sourceUhrId] = source.droppableId.split('-');
       const [destinationDay, destinationUhrId] = destination.droppableId.split('-');

@@ -602,7 +602,7 @@ const sendTeacherUpdate = async (socket, enseignantId) => {
       'enseignants.id': enseignantId.toString(),
       semaine: currentWeek,
       annee: currentYear
-    }).populate('classe matiere salle');
+    });
     
     console.log(`📚 Cours trouvés pour l'enseignant (semaine ${currentWeek}): ${enseignantCours.length}`);
     
@@ -668,7 +668,7 @@ io.on('connection', (socket) => {
         'enseignants.id': subscribedEnseignantId.toString(),
         semaine: currentWeek,
         annee: currentYear
-      }).populate('classe matiere salle');
+      });
       
       console.log(`📚 Cours trouvés pour l'enseignant (semaine ${currentWeek}): ${enseignantCours.length}`);
       
@@ -1504,7 +1504,7 @@ server.listen(PORT, () => {
 
 // Intégration des routes mobiles
 const mobileApi = require('./mobile-api');
-mobileApi(app, { checkLoginAttempts, defaultUsers, JWT_SECRET });
+mobileApi(app, { checkLoginAttempts, defaultUsers, JWT_SECRET, loginAttempts });
 
 app.post('/api/update-uhr', async (req, res) => {
   try {
@@ -1542,35 +1542,5 @@ app.post('/api/surveillances', async (req, res) => {
     res.status(201).json(newSurveillance);
   } catch (error) {
     res.status(500).json({ error: error.message });
-  }
-});
-
-// Route pour récupérer les surveillances entre créneaux d'un enseignant
-app.get('/api/mobile/surveillances/enseignant/:enseignantId', async (req, res) => {
-  try {
-    const { enseignantId } = req.params;
-    const { semaine, annee } = req.query;
-
-    console.log('Requête reçue pour /api/mobile/surveillances/enseignant/:enseignantId');
-    console.log('Paramètres:', { enseignantId, semaine, annee });
-
-    if (!enseignantId) {
-      return res.status(400).json({ error: 'ID de l\'enseignant requis' });
-    }
-
-    console.log(`Recherche des surveillances pour enseignant ${enseignantId}, semaine ${semaine}, année ${annee}`);
-
-    // Rechercher les surveillances de l'enseignant
-    const surveillances = await Surveillance.find({
-      enseignant: enseignantId.toString(),
-      semaine: parseInt(semaine),
-      annee: parseInt(annee)
-    }).populate('uhr');
-
-    console.log(`Retour de ${surveillances.length} surveillances pour cet enseignant`);
-    res.json(surveillances);
-  } catch (error) {
-    console.error('Erreur lors de la récupération des surveillances de l\'enseignant:', error);
-    res.status(500).json({ error: 'Erreur lors de la récupération des surveillances' });
   }
 });

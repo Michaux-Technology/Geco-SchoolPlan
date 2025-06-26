@@ -6,7 +6,7 @@ const Salle = require('./models/Salle');
 const Uhr = require('./models/Uhr');
 const Surveillance = require('./models/Surveillance');
 
-module.exports = (app, { checkLoginAttempts, defaultUsers, JWT_SECRET }) => {
+module.exports = (app, { checkLoginAttempts, defaultUsers, JWT_SECRET, loginAttempts }) => {
 // --- Début du code extrait ---
 // (Collé depuis server.js lignes 1175 à 1240)
 
@@ -103,7 +103,7 @@ app.get('/api/mobile/planning', async (req, res) => {
     const cours = await Cours.find({
       semaine: parseInt(semaine),
       annee: parseInt(annee)
-    }).populate('classe matiere salle uhr');
+    }).populate('uhr');
     
     // Récupérer les créneaux horaires
     const uhrs = await Uhr.find().sort({ nummer: 1 });
@@ -165,7 +165,7 @@ app.get('/api/mobile/cours/enseignant', async (req, res) => {
       'enseignants.id': enseignantId,
       semaine: parseInt(semaine),
       annee: parseInt(annee)
-    }).populate('classe matiere salle');
+    });
     
     console.log(`Retour de ${cours.length} cours pour cet enseignant`);
     res.json(cours);
@@ -192,7 +192,7 @@ app.get('/api/mobile/cours/enseignant/:enseignantId', async (req, res) => {
       'enseignants.id': enseignantId,
       semaine: parseInt(semaine),
       annee: parseInt(annee)
-    }).populate('classe matiere salle uhr');
+    }).populate('uhr');
     
     // Récupérer les créneaux horaires
     const uhrs = await Uhr.find().sort({ nummer: 1 });
@@ -235,11 +235,12 @@ app.get('/api/mobile/surveillances/enseignant/:enseignantId', async (req, res) =
     console.log(`Recherche des surveillances pour enseignant ${enseignantId}, semaine ${semaine}, année ${annee}`);
     
     // Rechercher les surveillances de l'enseignant
+    // Ne faire le populate que sur les champs qui existent dans le schéma
     const surveillances = await Surveillance.find({
-      enseignantId: enseignantId,
+      enseignant: enseignantId,
       semaine: parseInt(semaine),
       annee: parseInt(annee)
-    }).populate('classe salle uhr');
+    }).populate('uhr enseignant');
     
     console.log(`Retour de ${surveillances.length} surveillances pour cet enseignant`);
     res.json(surveillances);

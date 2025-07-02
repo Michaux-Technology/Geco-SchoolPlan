@@ -136,6 +136,11 @@ const AddSurveillanceModal = ({
         enqueueSnackbar(t('planning.surveillance.updated'), { variant: 'success' });
         onClose();
       });
+
+      socket.once('error', (error) => {
+        console.error('Erreur lors de la mise à jour de la surveillance:', error);
+        enqueueSnackbar(t('planning.surveillance.addError'), { variant: 'error' });
+      });
     } else {
       // Ajout d'une nouvelle surveillance
       socket.emit('addSurveillance', surveillanceData);
@@ -146,7 +151,7 @@ const AddSurveillanceModal = ({
       });
     }
 
-    socket.once('surveillanceError', (error) => {
+    socket.once('error', (error) => {
       console.error('Erreur lors de l\'opération sur la surveillance:', error);
       enqueueSnackbar(t('planning.surveillance.addError'), { variant: 'error' });
     });
@@ -167,9 +172,10 @@ const AddSurveillanceModal = ({
         onClose();
       });
 
-      socket.once('surveillanceError', (error) => {
+      socket.once('error', (error) => {
         console.error('Erreur lors de la suppression de la surveillance:', error);
         enqueueSnackbar(t('planning.surveillance.deleteError'), { variant: 'error' });
+        onClose();
       });
     }
   };

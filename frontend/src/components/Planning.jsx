@@ -415,7 +415,7 @@ function Planning() {
 
     socket.current.emit('getPlanning', { semaine: currentWeek, annee: currentYear });
     socket.current.emit('getSurveillances', { semaine: currentWeek, annee: currentYear });
-    socket.current.emit('getZeitslots');
+    socket.current.emit('getUhrs');
     socket.current.emit('getEnseignants');
     socket.current.emit('getCours');
     socket.current.emit('getClasses');
@@ -1116,8 +1116,14 @@ function Planning() {
       cours.annee === year
     );
     
-    if (currentWeekCourses.length === 0) {
-      enqueueSnackbar(t('planning.noCourseInWeek', 'Aucun cours dans cette semaine à enregistrer comme modèle'), { variant: 'warning' });
+    // Vérifier si des surveillances existent pour cette semaine
+    const currentWeekSurveillances = surveillances.filter(surveillance => 
+      surveillance.semaine === weekNumber && 
+      surveillance.annee === year
+    );
+    
+    if (currentWeekCourses.length === 0 && currentWeekSurveillances.length === 0) {
+      enqueueSnackbar(t('planning.noCourseOrSurveillanceInWeek', 'Aucun cours ou surveillance dans cette semaine à enregistrer comme modèle'), { variant: 'warning' });
       return;
     }
     
@@ -1141,6 +1147,12 @@ function Planning() {
       cours.annee === year
     );
     
+    // Vérifier si des surveillances existent pour cette semaine
+    const currentWeekSurveillances = surveillances.filter(surveillance => 
+      surveillance.semaine === weekNumber && 
+      surveillance.annee === year
+    );
+    
     // Créer le nouveau modèle
     const newModel = {
       id: Date.now().toString(),
@@ -1148,6 +1160,7 @@ function Planning() {
       sourceWeek: weekNumber,
       sourceYear: year,
       courses: currentWeekCourses,
+      surveillances: currentWeekSurveillances,
       createdAt: new Date().toISOString()
     };
     
@@ -1206,9 +1219,22 @@ function Planning() {
       return newCours;
     });
     
+    // Préparer les nouvelles surveillances à créer
+    const newSurveillances = (selectedModelWeek.surveillances || []).map(oldSurveillance => {
+      // Créer une copie sans l'ID et les timestamps pour un nouveau document
+      const { _id, createdAt, updatedAt, __v, ...newSurveillance } = oldSurveillance;
+      
+      // Mettre à jour la semaine et l'année
+      newSurveillance.semaine = targetWeekNumber;
+      newSurveillance.annee = targetYear;
+      
+      return newSurveillance;
+    });
+    
     // Envoyer la demande d'application de modèle au serveur
     socket.current.emit('pasteWeek', {
       courses: newCourses,
+      surveillances: newSurveillances,
       targetWeek: targetWeekNumber,
       targetYear: targetYear,
       sourceWeek: selectedModelWeek.sourceWeek,
@@ -1218,8 +1244,9 @@ function Planning() {
     // Écouter la réponse du serveur
     socket.current.once('pasteWeekSuccess', (response) => {
       enqueueSnackbar(t('planning.modelApplied', 'Modèle appliqué avec succès'), { variant: 'success' });
-      // Actualiser les cours après l'application
+      // Actualiser les cours et surveillances après l'application
       socket.current.emit('getCours');
+      socket.current.emit('getSurveillances');
     });
     
     socket.current.once('pasteWeekError', (error) => {
@@ -1409,6 +1436,7 @@ function Planning() {
     });
 
     socket.current.on('uhrsUpdate', (data) => {
+      console.log('📥 Mise à jour des tranches horaires reçue dans Planning:', data);
       setUhrs(data);
     });
 
@@ -2355,7 +2383,7 @@ function Planning() {
             helperText={t('planning.modelNameHelp', 'Donnez un nom descriptif à ce modèle de semaine')}
           />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            {t('planning.modelSaveInfo', 'Ce modèle contiendra les cours de la semaine {{week}} de l\'année {{year}}', {
+            {t('planning.modelSaveInfo', 'Ce modèle contiendra les cours et surveillances de la semaine {{week}} de l\'année {{year}}', {
               week: getWeekNumber(currentWeek),
               year: currentWeek.getFullYear()
             })}
@@ -2398,6 +2426,7 @@ function Planning() {
                   <TableCell>{t('planning.modelName', 'Nom du modèle')}</TableCell>
                   <TableCell>{t('planning.sourceWeek', 'Semaine source')}</TableCell>
                   <TableCell>{t('planning.courseCount', 'Nombre de cours')}</TableCell>
+                  <TableCell>{t('planning.surveillanceCount', 'Nombre de surveillances')}</TableCell>
                   <TableCell>{t('planning.createdAt', 'Créé le')}</TableCell>
                   <TableCell align="center">{t('common.actions', 'Actions')}</TableCell>
                 </TableRow>
@@ -2416,6 +2445,7 @@ function Planning() {
                       {t('planning.week')} {model.sourceWeek} - {model.sourceYear}
                     </TableCell>
                     <TableCell>{model.courses.length}</TableCell>
+                    <TableCell>{model.surveillances ? model.surveillances.length : 0}</TableCell>
                     <TableCell>
                       {new Date(model.createdAt).toLocaleDateString()}
                     </TableCell>
@@ -2435,7 +2465,7 @@ function Planning() {
                 ))}
                 {modelWeeks.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} align="center">
+                    <TableCell colSpan={6} align="center">
                       {t('planning.noModelSaved', 'Aucun modèle de semaine n\'est enregistré')}
                     </TableCell>
                   </TableRow>
@@ -2450,8 +2480,9 @@ function Planning() {
                 {t('planning.selectedModel', 'Modèle sélectionné')}: {selectedModelWeek.name}
               </Typography>
               <Typography variant="body2">
-                {t('planning.modelContains', 'Ce modèle contient {{count}} cours de la semaine {{week}} - {{year}}', {
-                  count: selectedModelWeek.courses.length,
+                {t('planning.modelContains', 'Ce modèle contient {{courseCount}} cours et {{surveillanceCount}} surveillances de la semaine {{week}} - {{year}}', {
+                  courseCount: selectedModelWeek.courses.length,
+                  surveillanceCount: selectedModelWeek.surveillances ? selectedModelWeek.surveillances.length : 0,
                   week: selectedModelWeek.sourceWeek,
                   year: selectedModelWeek.sourceYear
                 })}

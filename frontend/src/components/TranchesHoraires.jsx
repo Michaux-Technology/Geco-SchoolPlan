@@ -48,7 +48,13 @@ function TranchesHoraires() {
     socket.current = io('http://localhost:5000');
 
     socket.current.on('uhrsUpdate', (data) => {
+      console.log('Mise à jour des tranches horaires reçue:', data);
       setUhrs(data);
+    });
+
+    socket.current.on('error', (error) => {
+      console.error('Erreur WebSocket:', error);
+      setError(error);
     });
 
     socket.current.emit('getUhrs');
@@ -102,11 +108,16 @@ function TranchesHoraires() {
     }
 
     if (selectedUhr) {
+      console.log('Envoi de la mise à jour de la tranche horaire:', {
+        _id: selectedUhr._id,
+        ...formData
+      });
       socket.current.emit('updateUhr', {
         _id: selectedUhr._id,
         ...formData
       });
     } else {
+      console.log('Envoi de l\'ajout de la tranche horaire:', formData);
       socket.current.emit('addUhr', formData);
     }
 

@@ -73,6 +73,7 @@ npm run dev
 - GET `/api/mobile/surveillances` - Liste des surveillances
 - GET `/api/mobile/status` - État du serveur
 
+
 ## Sécurité
 
 - Limitation des tentatives de connexion
@@ -82,3 +83,22 @@ npm run dev
 ## Contribution
 
 Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request. 
+
+
+## 📄 Licence : Business Source License 1.1 (BSL 1.1)
+
+Ce dépôt est sous la **Business Source License 1.1**, ce qui signifie :
+
+- ✅ Gratuit pour le développement, le test, la recherche et l’usage personnel
+- ❌ **Interdit pour tout usage en production** sans une licence commerciale
+
+### 🔐 Usage commercial
+
+Si vous souhaitez utiliser **Geco-SchoolPlan** dans un environnement de production (ex. : école, entreprise, serveur public), vous devez obtenir une **licence commerciale** auprès de Valery-Jerome Michaux.
+
+📩 Contact : michaux@free.fr
+
+### 📅 Passage en open source
+
+Le **4 juillet 2030**, le projet passera automatiquement sous licence **GPL v3** (open source complète).
+

@@ -30,6 +30,7 @@ It consists of:
   👉 [Geco-SchoolPlan-App](https://github.com/Michaux-Technology/Geco-SchoolPlan-App)
 
 ## 💡 Mes services
+
 ✅ Correction de bugs
 ✅ Installation 
 ---

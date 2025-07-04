@@ -29,10 +29,11 @@ It consists of:
 - 📱 a **mobile application** for teachers and students, in read-only mode:  
   👉 [Geco-SchoolPlan-App](https://github.com/Michaux-Technology/Geco-SchoolPlan-App)
 
-## 💡 Mes services
+## 💡 Mes services ?
 
 ✅ Correction de bugs
-✅ Installation 
+✅ Installation  
+
 ---
 
 ## 🚀 Key Features

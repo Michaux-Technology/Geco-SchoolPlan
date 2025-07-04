@@ -7,8 +7,6 @@ Elle se compose de :
 - 📱 une **application mobile** pour les enseignants et les élèves, en mode lecture seule :  
   👉 [Geco-SchoolPlan-App](https://github.com/Michaux-Technology/Geco-SchoolPlan-App)
 
-⚠️ Ce projet est encore en **cours de développement actif**.
-
 ---
 
 ## 🚀 Fonctionnalités principales

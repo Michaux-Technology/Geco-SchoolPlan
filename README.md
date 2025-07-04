@@ -1,13 +1,34 @@
 # 📚 Geco-SchoolPlan
 
-**Geco-SchoolPlan** is a web application for **school timetable management** with a **secure mobile API**.
+**Geco-SchoolPlan** est un logiciel open-source de gestion des emplois du temps conçu pour les **établissements scolaires**, **organismes de formation** et **associations éducatives**.
+
+Il permet de :
+- Planifier facilement cours, groupes, enseignants et salles
+- Visualiser les emplois du temps en un clic
+- Simplifier l’organisation pédagogique
+
+---
+
+## 👤 Pour qui ?
+
+- Écoles, collèges, lycées, centres de formation
+- Responsables pédagogiques souhaitant une solution simple et efficace
+- Développeurs cherchant une base modulable pour une application scolaire
+
+---
+
+## 💡 Pourquoi choisir Geco-SchoolPlan ?
+
+✅ Interface claire et intuitive  
+✅ Architecture open-source modulaire  
+✅ Déploiement simple en local ou sur serveur  
+✅ Contrôle total sur vos données
 
 It consists of:
 - 🛠️ a **web frontend** for schedule management (modification, assignment, visualization),
 - 📱 a **mobile application** for teachers and students, in read-only mode:  
   👉 [Geco-SchoolPlan-App](https://github.com/Michaux-Technology/Geco-SchoolPlan-App)
 
-⚠️ This project is currently under **active development**.
 
 ---
 

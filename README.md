@@ -4,7 +4,7 @@
 
 Il permet de :
 - Planifier facilement cours, groupes, enseignants et salles
-- Visualiser les emplois du temps en un clic
+- Visualiser les emplois du temps en un clic en temps reel
 - Simplifier l’organisation pédagogique
 
 ---

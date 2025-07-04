@@ -1,55 +1,58 @@
 # 📚 Geco-SchoolPlan
 
-**Geco-SchoolPlan** est une application web de **gestion d'emploi du temps scolaire** avec une **API mobile sécurisée**.
+**Geco-SchoolPlan** is a web application for **school timetable management** with a **secure mobile API**.
 
-Elle se compose de :
-- 🔧 un **frontend web** pour la gestion et la planification (modification, affectation, visualisation),
-- 📱 une **application mobile** pour les enseignants et les élèves, en mode lecture seule :  
+It consists of:
+- 🛠️ a **web frontend** for schedule management (modification, assignment, visualization),
+- 📱 a **mobile application** for teachers and students, in read-only mode:  
   👉 [Geco-SchoolPlan-App](https://github.com/Michaux-Technology/Geco-SchoolPlan-App)
 
----
-
-## 🚀 Fonctionnalités principales
-
-- 🔐 Authentification des utilisateurs (enseignants et élèves)
-- 📆 Gestion des cours et des emplois du temps
-- 🡭 Gestion des surveillances
-- 📲 API mobile sécurisée
-- 🔒 Authentification par **JWT**
-- 🛡️ Limitation des tentatives de connexion
-- 🧩 Contrôle d’accès basé sur les rôles
+⚠️ This project is currently under **active development**.
 
 ---
 
-## 🧰 Prérequis techniques
+## 🚀 Key Features
+
+- 🔐 User authentication (teachers and students)
+- 📆 Course and timetable management
+- 🧍‍♂️ Supervision scheduling
+- 📲 Secure mobile API
+- 🔒 JWT-based authentication
+- 🛡️ Login attempt limitation
+- 🧩 Role-based access control
+- 🌐 Multilingual support: **French**, **English**, and **German**
+
+---
+
+## 🧰 Requirements
 
 - [Node.js](https://nodejs.org)
 - [MongoDB](https://www.mongodb.com)
-- `npm` ou `yarn`
+- `npm` or `yarn`
 
 ---
 
-## ⚙️ Installation locale
+## ⚙️ Local Installation
 
-1. Clonez le dépôt :
+1. Clone the repository:
    ```bash
    git clone https://github.com/Michaux-Technology/Geco-SchoolPlan.git
    cd Geco-SchoolPlan
    ```
 
-2. Installez les dépendances **backend** :
+2. Install **backend** dependencies:
    ```bash
    cd backend
    npm install
    ```
 
-3. Installez les dépendances **frontend** :
+3. Install **frontend** dependencies:
    ```bash
    cd ../frontend
    npm install
    ```
 
-4. Créez un fichier `.env` dans `backend` avec les variables suivantes :
+4. Create a `.env` file inside `backend` with the following variables:
    ```env
    MONGODB_URI=mongodb://localhost:27017/Geco-SchoolPlan
    JWT_SECRET=your_jwt_secret
@@ -58,15 +61,15 @@ Elle se compose de :
 
 ---
 
-## ▶️ Lancement de l’application
+## ▶️ Start the Application
 
-### Backend :
+### Backend:
 ```bash
 cd backend
 npm start
 ```
 
-### Frontend :
+### Frontend:
 ```bash
 cd frontend
 npm run dev
@@ -74,48 +77,48 @@ npm run dev
 
 ---
 
-## 📱 API REST – Endpoints principaux
+## 📡 REST API – Main Endpoints
 
-| Méthode | Endpoint                  | Description                   |
-|---------|---------------------------|-------------------------------|
-| POST    | `/api/mobile/login`       | Connexion utilisateur         |
-| GET     | `/api/mobile/cours`       | Récupérer les cours           |
-| GET     | `/api/mobile/enseignants` | Liste des enseignants         |
-| GET     | `/api/mobile/surveillances` | Liste des surveillances     |
-| GET     | `/api/mobile/status`      | Statut du serveur             |
-
----
-
-## 🛡️ Sécurité
-
-- 🔐 Authentification par **JWT**
-- 🛡️ Limitation des connexions abusives
-- 🔒 Accès restreint selon les rôles
+| Method | Endpoint                    | Description                 |
+|--------|-----------------------------|-----------------------------|
+| POST   | `/api/mobile/login`         | User login                  |
+| GET    | `/api/mobile/cours`         | Get courses                 |
+| GET    | `/api/mobile/enseignants`   | List of teachers            |
+| GET    | `/api/mobile/surveillances` | List of supervisions        |
+| GET    | `/api/mobile/status`        | Server status               |
 
 ---
 
-## 🤝 Contribution
+## 🛡️ Security
 
-Les contributions sont les bienvenues !  
-N'hésitez pas à **ouvrir une issue** ou une **pull request** pour suggérer des améliorations ou corriger des bugs.
-
----
-
-## 📄 Licence : Business Source License 1.1 (BSL 1.1)
-
-Ce projet est distribuent sous la **Business Source License 1.1**, ce qui signifie :
-
-- ✅ **Gratuit** pour le développement, test, recherche et usage personnel
-- ❌ **Interdit pour tout usage en production** sans une licence commerciale
-
-### 🔐 Usage commercial
-
-L'utilisation de **Geco-SchoolPlan** dans un environnement de production (écoles, entreprises, serveurs publics, etc.) nécessite une **licence commerciale**.
-
-📩 Contact pour licence : **michaux@free.fr**
+- 🔐 JWT-based authentication
+- 🛡️ Brute-force login protection
+- 🔒 Role-based access control
 
 ---
 
-## ⏳ Ouverture future
+## 🤝 Contributing
 
-À partir du **4 juillet 2030**, ce projet passera automatiquement sous licence **GPL v3** (libre/open source complète).
+Contributions are welcome!  
+Feel free to **open an issue** or **submit a pull request** to suggest improvements or report bugs.
+
+---
+
+## 📄 License: Business Source License 1.1 (BSL 1.1)
+
+This project is distributed under the **Business Source License 1.1**, which means:
+
+- ✅ **Free** for development, testing, research, and personal use
+- ❌ **Not allowed in production environments** without a commercial license
+
+### 🔐 Commercial Use
+
+To use **Geco-SchoolPlan** in a production environment (schools, companies, public servers, etc.), you must obtain a **commercial license**.
+
+📩 License contact: **michaux@free.fr**
+
+---
+
+## ⏳ Future Open Source
+
+Starting **July 4, 2030**, this project will automatically be relicensed under **GPL v3** (fully open source).

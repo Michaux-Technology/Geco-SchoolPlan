@@ -32,7 +32,6 @@ It consists of:
 ## 💡 Mes services ?
 
 ✅ Correction de bugs
-
 ✅ Installation  
 
 ---

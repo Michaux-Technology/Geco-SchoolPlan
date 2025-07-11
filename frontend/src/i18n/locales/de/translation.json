@@ -278,5 +278,24 @@
     "october": "Oktober",
     "november": "November",
     "december": "Dezember"
+  },
+  "setup": {
+    "initialSetup": "Erste Einrichtung",
+    "createAdminAccount": "Erstellen Sie ein Administrator-Konto, um mit der Anwendung zu beginnen.",
+    "name": "Name",
+    "yourName": "Ihr Name",
+    "email": "E-Mail",
+    "yourEmail": "Ihre E-Mail",
+    "password": "Passwort",
+    "yourPassword": "Ihr Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "confirmYourPassword": "Bestätigen Sie Ihr Passwort",
+    "createAccount": "Konto erstellen",
+    "creating": "Erstellen...",
+    "nameRequired": "Name ist erforderlich",
+    "passwordsDontMatch": "Passwörter stimmen nicht überein",
+    "passwordTooShort": "Passwort muss mindestens 6 Zeichen enthalten",
+    "registrationError": "Fehler bei der Registrierung",
+    "accountCreatedSuccess": "Konto erfolgreich erstellt. Sie können sich jetzt anmelden."
   }
 } 

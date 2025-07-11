@@ -64,13 +64,10 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Cet email est déjà utilisé' });
     }
     
-    // Hasher le mot de passe
-    const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Créer le nouvel utilisateur
+    // Créer le nouvel utilisateur (le mot de passe sera hashé automatiquement par le modèle)
     const user = await User.create({
       email,
-      password: hashedPassword,
+      password: password, // Le modèle User s'occupe du hashing
       name: name || email.split('@')[0], // Utiliser le nom fourni ou la partie locale de l'email
       role: role || 'student'
     });

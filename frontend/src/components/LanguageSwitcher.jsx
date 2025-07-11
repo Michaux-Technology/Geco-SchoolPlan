@@ -23,7 +23,10 @@ function LanguageSwitcher() {
   const textColor = isLoginPage ? 'white' : 'white';
 
   return (
-    <Box sx={{ minWidth: 120 }}>
+    <Box sx={{ 
+      minWidth: { xs: 100, sm: 120 },
+      maxWidth: { xs: 120, sm: 150 }
+    }}>
       <FormControl size="small" fullWidth>
         <InputLabel 
           id="language-select-label"

@@ -178,5 +178,24 @@
     "october": "October",
     "november": "November",
     "december": "December"
+  },
+  "setup": {
+    "initialSetup": "Initial Setup",
+    "createAdminAccount": "Create an administrator account to start using the application.",
+    "name": "Name",
+    "yourName": "Your name",
+    "email": "Email",
+    "yourEmail": "Your email",
+    "password": "Password",
+    "yourPassword": "Your password",
+    "confirmPassword": "Confirm password",
+    "confirmYourPassword": "Confirm your password",
+    "createAccount": "Create account",
+    "creating": "Creating...",
+    "nameRequired": "Name is required",
+    "passwordsDontMatch": "Passwords do not match",
+    "passwordTooShort": "Password must contain at least 6 characters",
+    "registrationError": "Error during registration",
+    "accountCreatedSuccess": "Account created successfully. You can now log in."
   }
 } 

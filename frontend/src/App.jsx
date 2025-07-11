@@ -33,6 +33,7 @@ function App() {
   // Vérifier si l'utilisateur est authentifié (token présent)
   const isAuthenticated = !!localStorage.getItem('token');
   const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const [isCheckingDatabase, setIsCheckingDatabase] = React.useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -42,6 +43,32 @@ function App() {
   const isLoginPage = location.pathname === '/login';
   const isInitialSetupPage = location.pathname === '/initial-setup';
   const shouldHideAppBar = isLoginPage || isInitialSetupPage;
+
+  // Vérifier la base de données au démarrage
+  React.useEffect(() => {
+    const checkDatabase = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/check-database');
+        const data = await response.json();
+        
+        if (data.status === 'success' && !data.hasUsers && location.pathname === '/login') {
+          // Si aucun utilisateur n'existe et qu'on est sur la page login, rediriger vers InitialSetup
+          navigate('/initial-setup');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la vérification de la base de données:', error);
+      } finally {
+        setIsCheckingDatabase(false);
+      }
+    };
+
+    // Ne vérifier que si on n'est pas déjà sur InitialSetup
+    if (location.pathname !== '/initial-setup') {
+      checkDatabase();
+    } else {
+      setIsCheckingDatabase(false);
+    }
+  }, [location.pathname, navigate]);
 
   // Détermine le chemin actif pour le surlignage dans le menu
   const isActivePath = (path) => location.pathname === path;
@@ -317,8 +344,24 @@ function App() {
             maxWidth: '100%'
           }}>
             <Routes>
-              <Route path="/" element={<Navigate to="/login" replace />} />
-              <Route path="/login" element={<Login />} />
+              <Route path="/" element={
+                isCheckingDatabase ? (
+                  <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+                    <CircularProgress />
+                  </Box>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } />
+              <Route path="/login" element={
+                isCheckingDatabase ? (
+                  <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+                    <CircularProgress />
+                  </Box>
+                ) : (
+                  <Login />
+                )
+              } />
               <Route path="/initial-setup" element={<InitialSetup />} />
               <Route path="/planning" element={
                 <ProtectedRoute>

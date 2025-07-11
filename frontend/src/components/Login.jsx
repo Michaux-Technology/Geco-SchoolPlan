@@ -16,24 +16,7 @@ function Login() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const [needsSetup, setNeedsSetup] = useState(false);
-  const [databaseStatus, setDatabaseStatus] = useState('loading');
-
   useEffect(() => {
-    // Vérifier si la base de données est vide (aucun utilisateur)
-    const checkDatabase = async () => {
-      try {
-        const response = await fetch('/api/check-database');
-        const data = await response.json();
-        setDatabaseStatus(data.status);
-        setNeedsSetup(!data.hasUsers);
-      } catch (err) {
-        setDatabaseStatus('error');
-      }
-    };
-
-    checkDatabase();
-    
     // Afficher le message de succès s'il est passé dans l'état de la location
     if (location.state?.message) {
       setSuccess(location.state.message);
@@ -54,6 +37,8 @@ function Login() {
     setLoading(true);
 
     try {
+      console.log('Tentative de connexion avec:', { email: formData.email, password: '***' });
+      
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: {
@@ -63,15 +48,18 @@ function Login() {
       });
 
       const data = await response.json();
+      console.log('Réponse du serveur:', { status: response.status, data });
 
       if (response.ok) {
         localStorage.setItem('token', data.token);
         setSuccess(t('auth.loginSuccess'));
         navigate('/planning');
       } else {
-        setError(t('auth.loginError'));
+        // Afficher le message d'erreur spécifique du serveur
+        setError(data.message || t('auth.loginError'));
       }
     } catch (err) {
+      console.error('Erreur de connexion:', err);
       setError(t('auth.loginError'));
     } finally {
       setLoading(false);
@@ -101,13 +89,6 @@ function Login() {
       
       <div className="login-box">
         <h2>{t('auth.login')}</h2>
-        
-        {needsSetup && (
-          <div className="setup-message">
-            <p>{t('auth.noUsers')}</p>
-            <Link to="/initial-setup" className="setup-link">{t('auth.setupApp')}</Link>
-          </div>
-        )}
         
         {success && <div className="success-message">{success}</div>}
         {error && <div className="error-message">{error}</div>}

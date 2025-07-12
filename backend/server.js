@@ -145,8 +145,6 @@ async function initializeUhr() {
 }
 
 // Connexion à MongoDB avec gestion des erreurs améliorée
-const MONGODB_URI = 'mongodb://192.168.1.104:27017/Geco-SchoolPlan';
-
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);

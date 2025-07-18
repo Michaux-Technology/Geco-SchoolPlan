@@ -48,8 +48,10 @@ It consists of:
 - 🛡️ Login attempt limitation
 - 🧩 Role-based access control
 - 🌐 Multilingual support:
-   **System interface languages**:          French, English, and German
-   **Teacher & Student app languages**:     French, English, German, Arabic, and     Russian
+   **System interface languages**:
+  French, English, and German
+   **Teacher & Student app languages**:
+  French, English, German, Arabic, and     Russian
 ---
 
 ## 🧰 Requirements

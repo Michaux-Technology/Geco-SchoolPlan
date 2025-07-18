@@ -35,7 +35,7 @@ It consists of:
 
 ✅ Bug fixing  
 ✅ Installation
-✅ VPS Server with Software 
+✅ VPS Server with Software (Ionos)
 
 ---
 

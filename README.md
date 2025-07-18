@@ -18,10 +18,13 @@ It allows you to:
 
 ## 💡 Why choose Geco-SchoolPlan?
 
-✅ Interface claire et intuitive  
-✅ Architecture open-source modulaire  
-✅ Déploiement simple en local ou sur serveur  
-✅ Contrôle total sur vos données
+✅ Clear and intuitive interface  
+✅ Modular open-source architecture  
+✅ Easy deployment locally or on a server  
+✅ Full control over your data  
+✅ Real-time visible modifications  
+✅ Caching system for students not connected to the app  
+✅ Drag-and-drop course rescheduling
 
 It consists of:
 - 🛠️ a **web frontend** for schedule management (modification, assignment, visualization),

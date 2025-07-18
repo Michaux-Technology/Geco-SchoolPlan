@@ -48,7 +48,7 @@ It consists of:
 - 🛡️ Login attempt limitation
 - 🧩 Role-based access control
 - 🌐 Multilingual support:
-- 
+  
    **System interface languages**:
   French, English, and German
   

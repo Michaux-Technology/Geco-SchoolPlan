@@ -49,8 +49,11 @@ It consists of:
 - 🧩 Role-based access control
 - 🌐 Multilingual support:
    **System interface languages**:
+  
   French, English, and German
+  
    **Teacher & Student app languages**:
+  
   French, English, German, Arabic, and     Russian
 ---
 

@@ -16,7 +16,7 @@ It allows you to:
 - Developers seeking a modular foundation for a school-oriented application
 ---
 
-## 💡 Pourquoi choisir Geco-SchoolPlan ?
+## 💡 Why choose Geco-SchoolPlan?
 
 ✅ Interface claire et intuitive  
 ✅ Architecture open-source modulaire  
@@ -28,10 +28,10 @@ It consists of:
 - 📱 a **mobile application** for teachers and students, in read-only mode:  
   👉 [Geco-SchoolPlan-App](https://github.com/Michaux-Technology/Geco-SchoolPlan-App)
 
-## 💡 Mes services ?
+## 💡 My services ?
 
-✅ Correction de bugs
-✅ Installation  
+✅ Bug fixing  
+✅ Installation
 
 ---
 

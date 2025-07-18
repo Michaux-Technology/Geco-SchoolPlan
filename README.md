@@ -35,6 +35,7 @@ It consists of:
 
 ✅ Bug fixing  
 ✅ Installation
+✅ Sass
 
 ---
 

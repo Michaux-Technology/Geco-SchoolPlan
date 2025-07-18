@@ -35,7 +35,7 @@ It consists of:
 
 ✅ Bug fixing  
 ✅ Installation
-✅ Sass
+✅ VPS Server with Software 
 
 ---
 

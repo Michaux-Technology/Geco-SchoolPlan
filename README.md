@@ -128,7 +128,7 @@ npm run dev
 - 🔐 JWT-based authentication
 - 🛡️ Brute-force login protection
 - 🔒 Role-based access control
-- ⚖️ General Data Protection Regulation compliant
+- ⚖️ GDPR compliant
 ---
 
 ## 🤝 Contributing

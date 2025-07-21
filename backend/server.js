@@ -144,15 +144,15 @@ async function initializeUhr() {
   }
 }
 
-// Connexion à MongoDB avec gestion des erreurs améliorée
+// Log de l'URI MongoDB utilisée
+console.log('Connexion à MongoDB avec l\'URI :', process.env.MONGODB_URI);
+
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connecté à MongoDB');
-
     // Initialiser les tranches horaires si la collection est vide
     await Uhr.initializeUhrs();
-    
     // Charger les données
     await loadData();
   } catch (error) {

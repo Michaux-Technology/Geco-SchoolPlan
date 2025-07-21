@@ -1,38 +1,42 @@
 # 📚 Geco-SchoolPlan
 
-**Geco-SchoolPlan** est un logiciel open-source de gestion des emplois du temps conçu pour les **établissements scolaires**, **organismes de formation** et **associations éducatives**.
+**Geco-SchoolPlan** is an open-source scheduling software designed for **schools**, **training organizations**, and **educational associations**.
 
-Il permet de :
-- Planifier facilement cours, groupes, enseignants et salles
-- Visualiser les emplois du temps en un clic en temps reel
-- Simplifier l’organisation pédagogique
-
+It allows you to:
+- Easily schedule classes, groups, teachers, and rooms  
+- View timetables in real time with a single click  
+- Simplify educational organization
+  
 ---
 
-## 👤 Pour qui ?
+## 👤 Who is it for?
 
-- Écoles, collèges, lycées, centres de formation
-- Responsables pédagogiques souhaitant une solution simple et efficace
-- Développeurs cherchant une base modulable pour une application scolaire
-
+- Schools, middle schools, high schools, and training centers  
+- Educational coordinators looking for a simple and efficient solution  
+- Developers seeking a modular foundation for a school-oriented application
 ---
 
-## 💡 Pourquoi choisir Geco-SchoolPlan ?
+## 💡 Why choose Geco-SchoolPlan?
 
-✅ Interface claire et intuitive  
-✅ Architecture open-source modulaire  
-✅ Déploiement simple en local ou sur serveur  
-✅ Contrôle total sur vos données
+✅ Clear and intuitive interface  
+✅ Modular open-source architecture  
+✅ Easy deployment locally or on a server  
+✅ Full control over your data  
+✅ Real-time visible modifications  
+✅ Caching system for students not connected to the app  
+✅ Drag-and-drop course rescheduling
 
 It consists of:
 - 🛠️ a **web frontend** for schedule management (modification, assignment, visualization),
 - 📱 a **mobile application** for teachers and students, in read-only mode:  
   👉 [Geco-SchoolPlan-App](https://github.com/Michaux-Technology/Geco-SchoolPlan-App)
 
-## 💡 Mes services ?
+## 💡 My services ?
 
-✅ Correction de bugs
-✅ Installation  
+✅ Bug fixing  
+✅ Installation
+
+✅ VPS Server with Software (Ionos)
 
 ---
 
@@ -45,8 +49,13 @@ It consists of:
 - 🔒 JWT-based authentication
 - 🛡️ Login attempt limitation
 - 🧩 Role-based access control
-- 🌐 Multilingual support: **French**, **English**, and **German**
-
+- 🌐 Multilingual support:
+  
+   **System interface languages**:
+  French, English, and German
+  
+   **Teacher & Student app languages**:
+  French, English, German, Arabic, and     Russian
 ---
 
 ## 🧰 Requirements
@@ -119,7 +128,7 @@ npm run dev
 - 🔐 JWT-based authentication
 - 🛡️ Brute-force login protection
 - 🔒 Role-based access control
-
+- ⚖️ GDPR compliant
 ---
 
 ## 🤝 Contributing

@@ -16,12 +16,32 @@ function Login() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [databaseStatus, setDatabaseStatus] = useState('checking');
+  const [needsSetup, setNeedsSetup] = useState(false);
+
   useEffect(() => {
+    // Vérifier si la base de données est vide (aucun utilisateur)
+    const checkDatabase = async () => {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${API_URL}/api/check-database`);
+        const data = await response.json();
+        setDatabaseStatus(data.status);
+        setNeedsSetup(!data.hasUsers);
+        // Si aucun utilisateur n'existe, rediriger automatiquement vers InitialSetup
+        if (!data.hasUsers) {
+          navigate('/initial-setup');
+        }
+      } catch (err) {
+        setDatabaseStatus('error');
+      }
+    };
+    checkDatabase();
     // Afficher le message de succès s'il est passé dans l'état de la location
     if (location.state?.message) {
       setSuccess(location.state.message);
     }
-  }, [location.state]);
+  }, [location.state, navigate]);
 
   const handleChange = (e) => {
     setFormData({
@@ -39,7 +59,8 @@ function Login() {
     try {
       console.log('Tentative de connexion avec:', { email: formData.email, password: '***' });
       
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const API_URL = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

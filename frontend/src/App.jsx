@@ -48,7 +48,8 @@ function App() {
   React.useEffect(() => {
     const checkDatabase = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/check-database');
+        const API_URL = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${API_URL}/api/check-database`);
         const data = await response.json();
         
         if (data.status === 'success' && !data.hasUsers && location.pathname === '/login') {

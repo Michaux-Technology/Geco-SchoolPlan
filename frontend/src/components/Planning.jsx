@@ -325,7 +325,7 @@ function Planning() {
 
     const initializeSocket = () => {
       if (!socket.current && isComponentMounted) {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const apiUrl = import.meta.env.VITE_API_URL;
         
         if (!apiUrl) {
           console.error('L\'URL de l\'API n\'est pas définie. Veuillez configurer VITE_API_URL dans le fichier .env');

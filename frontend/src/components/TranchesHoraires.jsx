@@ -45,7 +45,7 @@ function TranchesHoraires() {
   const [contextMenuUhr, setContextMenuUhr] = useState(null);
 
   useEffect(() => {
-    socket.current = io('http://localhost:5000');
+    socket.current = io(import.meta.env.VITE_API_URL);
 
     socket.current.on('uhrsUpdate', (data) => {
       console.log('Mise à jour des tranches horaires reçue:', data);

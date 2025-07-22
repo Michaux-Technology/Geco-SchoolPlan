@@ -41,7 +41,7 @@ Vous pouvez essayer **Geco-SchoolPlan** en ligne à l'adresse suivante :
 
 - ✉️ **Email** : `test@test.com`  
 - 🔒 **Mot de passe** : `123456`
-- 
+  
 ## 💡 My services ?
 
 ✅ Bug fixing  

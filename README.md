@@ -32,16 +32,16 @@ It consists of:
   👉 [Geco-SchoolPlan-App](https://github.com/Michaux-Technology/Geco-SchoolPlan-App)
 ---
 
-## 🔗 Démo en ligne
+## 🔗 Online Demo
 
-Vous pouvez essayer **Geco-SchoolPlan** en ligne à l'adresse suivante :
+You can try **Geco-SchoolPlan** online at the following address:
 
 👉 [http://212.132.114.62:3000/login](http://212.132.114.62:3000/login)
 
-**Identifiants de test :**
+**Test Credentials:**
 
-- ✉️ **Email** : `test@test.com`  
-- 🔒 **Mot de passe** : `123456`
+- ✉️ **Email**: `test@test.com`  
+- 🔒 **Password**: `123456`
 ---
 
 ## 💡 My services ?

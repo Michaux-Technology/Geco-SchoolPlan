@@ -1115,6 +1115,7 @@ io.on('connection', (socket) => {
       const matiere = await Matiere.create(matiereData);
       matieres = await Matiere.find({});
       io.emit('matieresUpdate', matieres);
+      socket.emit('success', 'Matière ajoutée avec succès');
     } catch (error) {
       socket.emit('error', error.message);
     }
@@ -1125,6 +1126,7 @@ io.on('connection', (socket) => {
       await Matiere.findByIdAndUpdate(matiereData._id, matiereData);
       const matieres = await Matiere.find({});
       io.emit('matieresUpdate', matieres);
+      socket.emit('success', 'Matière modifiée avec succès');
     } catch (error) {
       socket.emit('error', error.message);
     }
@@ -1135,6 +1137,7 @@ io.on('connection', (socket) => {
       await Matiere.findByIdAndDelete(id);
       const matieres = await Matiere.find({});
       io.emit('matieresUpdate', matieres);
+      socket.emit('success', 'Matière supprimée avec succès');
     } catch (error) {
       socket.emit('error', error.message);
     }

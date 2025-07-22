@@ -80,7 +80,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    window.location.href = '/login';
+    window.location.href = '/';
   };
 
   // Style commun pour les éléments de menu

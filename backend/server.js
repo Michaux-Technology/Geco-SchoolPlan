@@ -1071,6 +1071,7 @@ io.on('connection', (socket) => {
       const enseignant = await Enseignant.create(enseignantData);
       enseignants = await Enseignant.find({});
       io.emit('enseignantsUpdate', enseignants);
+      socket.emit('success', 'Enseignant ajouté avec succès');
     } catch (error) {
       socket.emit('error', error.message);
     }
@@ -1085,6 +1086,7 @@ io.on('connection', (socket) => {
       );
       enseignants = await Enseignant.find({});
       io.emit('enseignantsUpdate', enseignants);
+      socket.emit('success', 'Enseignant modifié avec succès');
     } catch (error) {
       socket.emit('error', error.message);
     }
@@ -1095,6 +1097,7 @@ io.on('connection', (socket) => {
       await Enseignant.findByIdAndDelete(enseignantId);
       enseignants = await Enseignant.find({});
       io.emit('enseignantsUpdate', enseignants);
+      socket.emit('success', 'Enseignant supprimé avec succès');
     } catch (error) {
       socket.emit('error', error.message);
     }
@@ -1158,6 +1161,7 @@ io.on('connection', (socket) => {
       const classe = await Classe.create(classeData);
       classes = await Classe.find({});
       io.emit('classesUpdate', classes);
+      socket.emit('success', 'Classe ajoutée avec succès');
     } catch (error) {
       socket.emit('error', error.message);
     }
@@ -1168,6 +1172,7 @@ io.on('connection', (socket) => {
       await Classe.findByIdAndUpdate(classeData._id, classeData);
       const classes = await Classe.find({});
       io.emit('classesUpdate', classes);
+      socket.emit('success', 'Classe modifiée avec succès');
     } catch (error) {
       socket.emit('error', error.message);
     }
@@ -1178,6 +1183,7 @@ io.on('connection', (socket) => {
       await Classe.findByIdAndDelete(id);
       const classes = await Classe.find({});
       io.emit('classesUpdate', classes);
+      socket.emit('success', 'Classe supprimée avec succès');
     } catch (error) {
       socket.emit('error', error.message);
     }
@@ -1198,6 +1204,7 @@ io.on('connection', (socket) => {
       const salle = await Salle.create(salleData);
       salles = await Salle.find({});
       io.emit('sallesUpdate', salles);
+      socket.emit('success', 'Salle ajoutée avec succès');
     } catch (error) {
       socket.emit('error', error.message);
     }
@@ -1208,6 +1215,7 @@ io.on('connection', (socket) => {
       await Salle.findByIdAndUpdate(salleData._id, salleData);
       const salles = await Salle.find({});
       io.emit('sallesUpdate', salles);
+      socket.emit('success', 'Salle modifiée avec succès');
     } catch (error) {
       socket.emit('error', error.message);
     }
@@ -1218,6 +1226,7 @@ io.on('connection', (socket) => {
       await Salle.findByIdAndDelete(id);
       const salles = await Salle.find({});
       io.emit('sallesUpdate', salles);
+      socket.emit('success', 'Salle supprimée avec succès');
     } catch (error) {
       socket.emit('error', error.message);
     }
@@ -1326,6 +1335,7 @@ io.on('connection', (socket) => {
       io.emit('uhrsUpdate', zeitslots);
       
       console.log('✅ Ajout de tranche horaire envoyé avec succès');
+      socket.emit('success', 'Tranche horaire ajoutée avec succès');
     } catch (error) {
       console.error('❌ Erreur lors de l\'ajout de la tranche horaire:', error);
       socket.emit('error', error.message);
@@ -1344,6 +1354,7 @@ io.on('connection', (socket) => {
       io.emit('uhrsUpdate', zeitslots);
       
       console.log('✅ Mise à jour des tranches horaires envoyée avec succès');
+      socket.emit('success', 'Tranche horaire modifiée avec succès');
     } catch (error) {
       console.error('❌ Erreur lors de la mise à jour de la tranche horaire:', error);
       socket.emit('error', error.message);
@@ -1362,6 +1373,7 @@ io.on('connection', (socket) => {
       io.emit('uhrsUpdate', zeitslots);
       
       console.log('✅ Suppression de tranche horaire envoyée avec succès');
+      socket.emit('success', 'Tranche horaire supprimée avec succès');
     } catch (error) {
       console.error('❌ Erreur lors de la suppression de la tranche horaire:', error);
       socket.emit('error', error.message);

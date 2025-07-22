@@ -36,7 +36,7 @@ It consists of:
 
 You can try **Geco-SchoolPlan** online at the following address:
 
-<a href="http://212.132.114.62:3000" target="_blank">👉 http://212.132.114.62:3000</a>
+👉 <a href="http://212.132.114.62:3000" target="_blank">http://212.132.114.62:3000</a>
 
 **Test Credentials:**
 

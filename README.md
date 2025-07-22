@@ -32,6 +32,18 @@ It consists of:
   👉 [Geco-SchoolPlan-App](https://github.com/Michaux-Technology/Geco-SchoolPlan-App)
 ---
 
+## 🔗 Online Demo
+
+You can try **Geco-SchoolPlan** online at the following address:
+
+<a href="http://212.132.114.62:3000/login" target="_blank">👉 http://212.132.114.62:3000/login</a>
+
+**Test Credentials:**
+
+- ✉️ **Email**: `test@test.com`  
+- 🔒 **Password**: `123456`
+---
+  
 ## 💡 My services ?
 
 ✅ Bug fixing  

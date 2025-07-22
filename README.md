@@ -30,6 +30,7 @@ It consists of:
 - 🛠️ a **web frontend** for schedule management (modification, assignment, visualization),
 - 📱 a **mobile application** for teachers and students, in read-only mode:  
   👉 [Geco-SchoolPlan-App](https://github.com/Michaux-Technology/Geco-SchoolPlan-App)
+---
 
 ## 🔗 Démo en ligne
 
@@ -41,7 +42,8 @@ Vous pouvez essayer **Geco-SchoolPlan** en ligne à l'adresse suivante :
 
 - ✉️ **Email** : `test@test.com`  
 - 🔒 **Mot de passe** : `123456`
-  
+---
+
 ## 💡 My services ?
 
 ✅ Bug fixing  

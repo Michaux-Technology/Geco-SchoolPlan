@@ -35,16 +35,16 @@ import { useTranslation } from 'react-i18next';
 const socket = io(import.meta.env.VITE_API_URL);
 
 const TYPES_SALLE = [
-  'Bibliothèque',
-  'Gymnase',
-  'Laboratoire',
-  'Salle d\'art',
-  'Salle de classe',
-  'Salle de langue Etrangère',
-  'Salle de musique',
-  'Salle de sport',
-  'Salle informatique',
-  'Autre'
+  'classroom',
+  'lab',
+  'computer',
+  'sport',
+  'music',
+  'art',
+  'library',
+  'gym',
+  'foreignLanguage',
+  'other'
 ];
 
 function Salles() {
@@ -233,14 +233,6 @@ function Salles() {
                   fontWeight: 'bold !important',
                   padding: '12px !important',
                   textAlign: 'center !important',
-                  borderRadius: '8px 8px 0 0 !important'
-                }}>{t('rooms.description')}</TableCell>
-                <TableCell sx={{
-                  backgroundColor: '#1976d2 !important',
-                  color: 'white !important',
-                  fontWeight: 'bold !important',
-                  padding: '12px !important',
-                  textAlign: 'center !important',
                   borderRadius: '8px 8px 0 0 !important',
                   width: '113px',
                   minWidth: '113px',
@@ -255,7 +247,7 @@ function Salles() {
                   onContextMenu={(e) => handleContextMenu(e, salle)}
                 >
                   <TableCell>{salle.nom}</TableCell>
-                  <TableCell>{salle.type}</TableCell>
+                  <TableCell>{t(`rooms.types.${salle.type}`)}</TableCell>
                   <TableCell>{salle.capacite}</TableCell>
                   <TableCell>{salle.description}</TableCell>
                   <TableCell align="right">
@@ -300,7 +292,7 @@ function Salles() {
               >
                 {TYPES_SALLE.map((type) => (
                   <MenuItem key={type} value={type}>
-                    {t(`rooms.types.${type.toLowerCase().replace(/\s+/g, '')}`)}
+                    {t(`rooms.types.${type}`)}
                   </MenuItem>
                 ))}
               </Select>

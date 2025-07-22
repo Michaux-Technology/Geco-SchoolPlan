@@ -105,12 +105,13 @@ You can try **Geco-SchoolPlan** online at the following address:
    JWT_SECRET=your_jwt_secret
    PORT=5000
    ```
-4. Create a `.env` file inside `frontend` with the following variables:
+5. Create a `.env` file inside `frontend` with the following variables:
    ```env
    VITE_API_URL=http://xxx.xxx.xxx.xxx:5000
    ```
----
+
 xxx.xxx.xxx.xxx is your Server IP
+---
 
 
 ## ▶️ Start the Application

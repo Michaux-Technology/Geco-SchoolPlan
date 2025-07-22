@@ -233,6 +233,14 @@ function Salles() {
                   fontWeight: 'bold !important',
                   padding: '12px !important',
                   textAlign: 'center !important',
+                  borderRadius: '8px 8px 0 0 !important'
+                }}>{t('rooms.description')}</TableCell>
+                <TableCell sx={{
+                  backgroundColor: '#1976d2 !important',
+                  color: 'white !important',
+                  fontWeight: 'bold !important',
+                  padding: '12px !important',
+                  textAlign: 'center !important',
                   borderRadius: '8px 8px 0 0 !important',
                   width: '113px',
                   minWidth: '113px',

@@ -28,6 +28,8 @@ import InitialSetup from './components/InitialSetup';
 import Statistiques from './components/Statistiques';
 import { useTranslation } from 'react-i18next';
 import './App.css';
+import QRCodePage from './components/QRCodePage';
+import QrCodeIcon from '@mui/icons-material/QrCode';
 
 function App() {
   // Vérifier si l'utilisateur est authentifié (token présent)
@@ -110,7 +112,8 @@ function App() {
       background: theme.palette.background.default,
       height: '100%',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      overflowX: 'hidden',
     }}>
       <Box sx={{ 
         p: 3, 
@@ -248,6 +251,23 @@ function App() {
             }}
           />
         </ListItem>
+
+        <ListItem 
+          component={Link} 
+          to="/qr-code" 
+          sx={menuItemStyle('/qr-code')}
+          onClick={() => setDrawerOpen(false)}
+        >
+          <ListItemIcon sx={menuIconStyle('/qr-code')}>
+            <QrCodeIcon />
+          </ListItemIcon>
+          <ListItemText 
+            primary={t('navigation.qrCode', 'QR Code Connexion')} 
+            primaryTypographyProps={{
+              fontWeight: isActivePath('/qr-code') ? 'bold' : 'normal'
+            }}
+          />
+        </ListItem>
       </List>
       
       <Divider sx={{ my: 2 }} />
@@ -339,7 +359,8 @@ function App() {
           )}
           <Box sx={{ 
             flex: 1, 
-            overflow: 'auto', 
+            overflowY: 'auto',
+            overflowX: 'hidden',
             p: isAuthenticated && !shouldHideAppBar ? 2 : 0,
             width: '100%',
             maxWidth: '100%'
@@ -402,6 +423,11 @@ function App() {
               <Route path="/statistiques" element={
                 <ProtectedRoute>
                   <Statistiques />
+                </ProtectedRoute>
+              } />
+              <Route path="/qr-code" element={
+                <ProtectedRoute>
+                  <QRCodePage />
                 </ProtectedRoute>
               } />
             </Routes>

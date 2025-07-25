@@ -2362,6 +2362,8 @@ function Planning() {
         salles={salles}
         uhrs={uhrs}
         selectedCell={selectedCell}
+        cours={cours}
+        currentWeek={getWeekNumber(currentWeek)}
       />
 
       {/* Dialogue pour enregistrer un modèle de semaine */}

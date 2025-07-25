@@ -47,6 +47,32 @@ const TYPES_SALLE = [
   'other'
 ];
 
+const TYPE_MAP = {
+  classroom: "Salle de classe",
+  lab: "Laboratoire",
+  computer: "Salle informatique",
+  sport: "Salle de sport",
+  music: "Salle de musique",
+  art: "Salle d'art",
+  library: "Bibliothèque",
+  gym: "Gymnase",
+  foreignLanguage: "Salle de langue Etrangère",
+  other: "Autre"
+};
+
+const TYPE_LABELS = {
+  "Salle de classe": "Salle de classe",
+  "Laboratoire": "Laboratoire",
+  "Salle informatique": "Salle informatique",
+  "Salle de sport": "Salle de sport",
+  "Salle de musique": "Salle de musique",
+  "Salle d'art": "Salle d'art",
+  "Bibliothèque": "Bibliothèque",
+  "Gymnase": "Gymnase",
+  "Salle de langue Etrangère": "Salle de langue Etrangère",
+  "Autre": "Autre"
+};
+
 function Salles() {
   const { t } = useTranslation();
   const [salles, setSalles] = useState([]);
@@ -135,15 +161,21 @@ function Salles() {
       return;
     }
 
+    // Conversion du type interne vers le type attendu par le backend
+    const dataToSend = {
+      ...formData,
+      type: TYPE_MAP[formData.type] || formData.type
+    };
+
     if (selectedSalle) {
       // Mise à jour
       socket.emit('updateSalle', {
         _id: selectedSalle._id,
-        ...formData
+        ...dataToSend
       });
     } else {
       // Ajout
-      socket.emit('addSalle', formData);
+      socket.emit('addSalle', dataToSend);
     }
   };
 
@@ -255,7 +287,7 @@ function Salles() {
                   onContextMenu={(e) => handleContextMenu(e, salle)}
                 >
                   <TableCell>{salle.nom}</TableCell>
-                  <TableCell>{t(`rooms.types.${salle.type}`)}</TableCell>
+                  <TableCell>{TYPE_LABELS[salle.type] || salle.type}</TableCell>
                   <TableCell>{salle.capacite}</TableCell>
                   <TableCell>{salle.description}</TableCell>
                   <TableCell align="right">

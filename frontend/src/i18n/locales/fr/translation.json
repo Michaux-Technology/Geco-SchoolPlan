@@ -300,5 +300,12 @@
     "passwordTooShort": "Le mot de passe doit contenir au moins 6 caractères",
     "registrationError": "Erreur lors de l'inscription",
     "accountCreatedSuccess": "Compte créé avec succès. Vous pouvez maintenant vous connecter."
+  },
+  "qr": {
+    "title": "QR Code Connexion Élève",
+    "backend": "Backend",
+    "username": "Utilisateur",
+    "password": "Mot de passe",
+    "jsonInfo": "(Le QR code encode ces informations au format JSON)"
   }
 } 

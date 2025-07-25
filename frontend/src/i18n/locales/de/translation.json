@@ -297,5 +297,12 @@
     "passwordTooShort": "Passwort muss mindestens 6 Zeichen enthalten",
     "registrationError": "Fehler bei der Registrierung",
     "accountCreatedSuccess": "Konto erfolgreich erstellt. Sie können sich jetzt anmelden."
+  },
+  "qr": {
+    "title": "QR-Code Schüler-Login",
+    "backend": "Backend",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "jsonInfo": "(Der QR-Code enthält diese Informationen als JSON)"
   }
 } 

@@ -296,5 +296,12 @@
     "passwordTooShort": "Password must contain at least 6 characters",
     "registrationError": "Error during registration",
     "accountCreatedSuccess": "Account created successfully. You can now log in."
+  },
+  "qr": {
+    "title": "Student Login QR Code",
+    "backend": "Backend",
+    "username": "Username",
+    "password": "Password",
+    "jsonInfo": "(The QR code encodes this information as JSON)"
   }
 } 

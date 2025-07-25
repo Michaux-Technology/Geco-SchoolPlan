@@ -1,5 +1,6 @@
 import React from 'react';
 import QRCode from 'react-qr-code';
+import { useTranslation } from 'react-i18next';
 
 const backendUrl = import.meta.env.VITE_API_URL || 'URL_BACKEND_NON_TROUVEE';
 const eleveUsername = 'eleve';
@@ -12,17 +13,18 @@ const qrData = JSON.stringify({
 });
 
 const QRCodePage = () => {
+  const { t } = useTranslation();
   return (
     <div style={{ textAlign: 'center', marginTop: 40 }}>
-      <h2 style={{ marginBottom: 32 }}>QR Code Connexion Élève</h2>
+      <h2 style={{ marginBottom: 32 }}>{t('qr.title')}</h2>
       <QRCode value={qrData} size={256} />
       <div style={{ marginTop: 24 }}>
-        <strong>Backend :</strong> {backendUrl}<br />
-        <strong>Utilisateur :</strong> {eleveUsername}<br />
-        <strong>Mot de passe :</strong> {elevePassword}
+        <strong>{t('qr.backend')} :</strong> {backendUrl}<br />
+        <strong>{t('qr.username')} :</strong> {eleveUsername}<br />
+        <strong>{t('qr.password')} :</strong> {elevePassword}
       </div>
       <div style={{ marginTop: 16, fontSize: 12, color: '#888' }}>
-        (Le QR code encode ces informations au format JSON)
+        {t('qr.jsonInfo')}
       </div>
     </div>
   );

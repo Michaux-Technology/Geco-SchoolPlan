@@ -299,6 +299,7 @@
   },
   "qr": {
     "title": "Student Login QR Code",
+    "schoolName": "School Name",
     "backend": "Backend",
     "username": "Username",
     "password": "Password",

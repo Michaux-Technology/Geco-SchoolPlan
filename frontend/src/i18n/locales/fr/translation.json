@@ -303,6 +303,7 @@
   },
   "qr": {
     "title": "QR Code Connexion Élève",
+    "schoolName": "Nom de l'école",
     "backend": "Backend",
     "username": "Utilisateur",
     "password": "Mot de passe",

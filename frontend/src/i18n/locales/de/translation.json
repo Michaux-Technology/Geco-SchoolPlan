@@ -300,6 +300,7 @@
   },
   "qr": {
     "title": "QR-Code Schüler-Login",
+    "schoolName": "Schulname",
     "backend": "Backend",
     "username": "Benutzername",
     "password": "Passwort",

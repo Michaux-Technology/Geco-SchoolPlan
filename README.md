@@ -107,6 +107,7 @@ You can try **Geco-SchoolPlan** online at the following address:
    ```
 5. Create a `.env` file inside `frontend` with the following variables:
    ```env
+   SCHOOL_NAME=My School
    VITE_API_URL=http://xxx.xxx.xxx.xxx:5000
    ```
 xxx.xxx.xxx.xxx is your Server Backend IP

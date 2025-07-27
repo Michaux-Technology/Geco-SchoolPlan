@@ -109,8 +109,14 @@ You can try **Geco-SchoolPlan** online at the following address:
    ```env
    VITE_SCHOOL_NAME=My School
    VITE_API_URL=http://xxx.xxx.xxx.xxx:5000
+   VITE_SCHOOL_NAME=Geco School
+   VITE_ELEVE_USERNAME=eleve
+   VITE_ELEVE_PASSWORD=1234
+   VITE_ENSEIGNANT_USERNAME=enseignant
+   VITE_ENSEIGNANT_PASSWORD=1234
    ```
 xxx.xxx.xxx.xxx is your Server Backend IP
+VITE_ELEVE and VITE_ENSEIGNANT are used for QR Code
 
 ---
 

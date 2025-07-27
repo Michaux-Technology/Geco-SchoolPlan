@@ -302,11 +302,29 @@
     "accountCreatedSuccess": "Compte créé avec succès. Vous pouvez maintenant vous connecter."
   },
   "qr": {
-    "title": "QR Code Connexion Élève",
+    "title": "QR Code Connexion",
     "schoolName": "Nom de l'école",
     "backend": "Backend",
     "username": "Utilisateur",
     "password": "Mot de passe",
-    "jsonInfo": "(Le QR code encode ces informations au format JSON)"
+    "jsonInfo": "(Le QR code encode ces informations au format JSON)",
+    "downloadButton": "Télécharger le QR code",
+    "downloaded": "QR code téléchargé. Vous pouvez maintenant l'insérer dans LibreOffice via Insertion > Image > À partir d'un fichier.",
+    "downloadError": "Erreur lors du téléchargement du QR code",
+    "downloadHighResButton": "Télécharger haute résolution",
+    "downloadedHighRes": "QR code haute résolution téléchargé pour impression.",
+    "canvasError": "Erreur: Impossible de trouver le QR code",
+    "refError": "Erreur: Référence QR code non trouvée",
+    "waitMessage": "Veuillez attendre que le QR code soit généré avant de télécharger",
+    "timeoutError": "Erreur: Le QR code n'a pas pu être généré dans le délai imparti",
+    "notReady": "Le QR code n'est pas encore prêt",
+    "readyMessage": "QR code prêt pour téléchargement",
+    "copyButton": "Copier le QR code",
+    "copied": "QR code copié dans le presse-papiers !",
+    "copyError": "Erreur lors de la copie du QR code",
+    "eleveTitle": "QR Code Élève",
+    "enseignantTitle": "QR Code Enseignant",
+    "copyEleveButton": "Copier QR Code Élève",
+    "copyEnseignantButton": "Copier QR Code Enseignant"
   }
 } 

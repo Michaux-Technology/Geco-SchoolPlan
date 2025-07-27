@@ -59,7 +59,9 @@ function Login() {
     try {
       console.log('Tentative de connexion avec:', { email: formData.email, password: '***' });
       
-      const API_URL = import.meta.env.VITE_API_URL;
+      const API_URL = import.meta.env.VITE_API_URL || 'http://192.168.1.30:5000';
+      console.log('URL de l\'API:', API_URL);
+      
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
@@ -68,8 +70,25 @@ function Login() {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
-      console.log('Réponse du serveur:', { status: response.status, data });
+      console.log('Statut de la réponse:', response.status);
+      console.log('Headers de la réponse:', Object.fromEntries(response.headers.entries()));
+
+      let data;
+      try {
+        const responseText = await response.text();
+        console.log('Réponse brute du serveur:', responseText);
+        
+        if (responseText.trim()) {
+          data = JSON.parse(responseText);
+        } else {
+          data = { message: 'Réponse vide du serveur' };
+        }
+      } catch (parseError) {
+        console.error('Erreur de parsing JSON:', parseError);
+        data = { message: 'Réponse invalide du serveur' };
+      }
+
+      console.log('Données parsées:', data);
 
       if (response.ok) {
         localStorage.setItem('token', data.token);
@@ -81,7 +100,15 @@ function Login() {
       }
     } catch (err) {
       console.error('Erreur de connexion:', err);
-      setError(t('auth.loginError'));
+      
+      // Diagnostic détaillé de l'erreur
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError('Erreur de connexion au serveur. Vérifiez que le serveur est démarré.');
+      } else if (err.name === 'SyntaxError') {
+        setError('Réponse invalide du serveur. Vérifiez la configuration.');
+      } else {
+        setError(t('auth.loginError'));
+      }
     } finally {
       setLoading(false);
     }

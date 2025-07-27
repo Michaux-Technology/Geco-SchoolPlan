@@ -4,6 +4,11 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+// Route de test pour vérifier que l'authentification fonctionne
+router.get('/test', (req, res) => {
+  res.json({ message: 'Route d\'authentification fonctionnelle', timestamp: new Date().toISOString() });
+});
+
 // Route pour vérifier l'état de la base de données
 router.get('/check-db', async (req, res) => {
   try {

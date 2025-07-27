@@ -82,6 +82,11 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Route de test pour vérifier que le serveur fonctionne
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'Serveur fonctionnel', timestamp: new Date().toISOString() });
+});
+
 // Initialiser les données
 let planning = [];
 let surveillances = [];

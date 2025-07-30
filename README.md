@@ -66,10 +66,10 @@ You can try **Geco-SchoolPlan** online at the following address:
 - 🌐 Multilingual support:
   
    **System interface languages**:
-  French, English, spanish and German
+  French, English, Spanish and German
   
    **Teacher & Student app languages**:
-  French, English, German, Arabic, and Russian
+  French, English, Spanish, German, Arabic, and Russian
 ---
 
 ## 🧰 Requirements

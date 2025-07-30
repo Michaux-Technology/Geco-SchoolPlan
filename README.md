@@ -47,8 +47,7 @@ You can try **Geco-SchoolPlan** online at the following address:
 ## 💡 My services ?
 
 ✅ Bug fixing  
-✅ Installation
-
+✅ Installation  
 ✅ VPS Server with Software (Ionos)
 
 ---

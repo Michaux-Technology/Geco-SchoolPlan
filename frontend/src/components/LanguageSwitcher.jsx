@@ -73,6 +73,7 @@ function LanguageSwitcher() {
           <MenuItem value="fr">Français</MenuItem>
           <MenuItem value="en">English</MenuItem>
           <MenuItem value="de">Deutsch</MenuItem>
+          <MenuItem value="es">Español</MenuItem>
         </Select>
       </FormControl>
     </Box>

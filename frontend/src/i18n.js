@@ -6,6 +6,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import translationFR from './i18n/locales/fr/translation.json';
 import translationEN from './i18n/locales/en/translation.json';
 import translationDE from './i18n/locales/de/translation.json';
+import translationES from './i18n/locales/es/translation.json';
 
 // On catch les erreurs potentielles d'importation pour les diagnostiquer
 let resources;
@@ -19,6 +20,9 @@ try {
     },
     de: {
       translation: translationDE
+    },
+    es: {
+      translation: translationES
     }
   };
 } catch (error) {
@@ -27,7 +31,8 @@ try {
   resources = {
     fr: { translation: {} },
     en: { translation: {} },
-    de: { translation: {} }
+    de: { translation: {} },
+    es: { translation: {} }
   };
 }
 

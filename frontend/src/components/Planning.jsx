@@ -981,13 +981,13 @@ function Planning() {
     // Préparer les informations de remplacement
     const remplacementInfo = [];
     if (replacementData.enseignants.join(', ') !== currentEnseignants) {
-      remplacementInfo.push(`Enseignant: ${replacementData.enseignants.join(', ')}`);
+      remplacementInfo.push(`${t('planning.teacher')}: ${replacementData.enseignants.join(', ')}`);
     }
     if (replacementData.matiere !== selectedCours.matiere) {
-      remplacementInfo.push(`Matière: ${replacementData.matiere}`);
+      remplacementInfo.push(`${t('planning.subject')}: ${replacementData.matiere}`);
     }
     if (replacementData.salle !== selectedCours.salle) {
-      remplacementInfo.push(`Salle: ${replacementData.salle}`);
+      remplacementInfo.push(`${t('planning.room')}: ${replacementData.salle}`);
     }
 
     // Préparation des données mises à jour

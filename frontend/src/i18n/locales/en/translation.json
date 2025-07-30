@@ -38,6 +38,7 @@
     "addCourse": "Add Course",
     "editCourse": "Edit Course",
     "deleteCourse": "Delete Course",
+    "deleteCourseConfirm": "What would you like to do with this course?",
     "confirmDeleteCourse": "Are you sure you want to delete this course?",
     "courseAdded": "Course successfully added",
     "courseUpdated": "Course successfully updated",

@@ -38,6 +38,7 @@
     "addCourse": "Kurs hinzufügen",
     "editCourse": "Kurs bearbeiten",
     "deleteCourse": "Kurs löschen",
+    "deleteCourseConfirm": "Was möchten Sie mit diesem Kurs tun?",
     "confirmDeleteCourse": "Möchten Sie diesen Kurs wirklich löschen?",
     "courseAdded": "Kurs erfolgreich hinzugefügt",
     "courseUpdated": "Kurs erfolgreich aktualisiert",

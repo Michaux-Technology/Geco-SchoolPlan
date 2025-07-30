@@ -66,10 +66,10 @@ You can try **Geco-SchoolPlan** online at the following address:
 - 🌐 Multilingual support:
   
    **System interface languages**:
-  French, English, and German
+  French, English, spanish and German
   
    **Teacher & Student app languages**:
-  French, English, German, Arabic, and     Russian
+  French, English, German, Arabic, and Russian
 ---
 
 ## 🧰 Requirements
@@ -105,6 +105,7 @@ You can try **Geco-SchoolPlan** online at the following address:
    MONGODB_URI=mongodb://localhost:27017/Geco-SchoolPlan
    JWT_SECRET=your_jwt_secret
    PORT=5000
+   ENCRYPTION_KEY=geco-school-plan-2024-secure-key
    ```
 5. Create a `.env` file inside `frontend` with the following variables:
    ```env

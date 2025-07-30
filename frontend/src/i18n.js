@@ -48,6 +48,9 @@ i18n
       escapeValue: false,
     },
     
+    // Permettre l'accès aux objets de traduction
+    returnObjects: false,
+    
     // Configuration de la détection de langue
     detection: {
       order: ['localStorage', 'navigator'],

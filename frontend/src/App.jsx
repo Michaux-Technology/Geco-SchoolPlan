@@ -262,7 +262,7 @@ function App() {
             <QrCodeIcon />
           </ListItemIcon>
           <ListItemText 
-            primary={t('navigation.qrCode', 'QR Code Connexion')} 
+            primary={t('navigation.qrCode')} 
             primaryTypographyProps={{
               fontWeight: isActivePath('/qr-code') ? 'bold' : 'normal'
             }}

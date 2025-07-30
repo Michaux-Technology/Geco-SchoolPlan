@@ -1654,7 +1654,7 @@ function Planning() {
                     color: '#1976d2',
                     fontWeight: 'bold'
                   }}>
-                    Surveillance
+                    {t('planning.surveillanceLabel')}
                   </Box>
                 </TableCell>
                 {jours.map((jour) => {
@@ -2036,7 +2036,7 @@ function Planning() {
                           color: '#1976d2',
                           fontWeight: 'bold'
                         }}>
-                          Surveillance
+                          {t('planning.surveillanceLabel')}
                         </Box>
                       </TableCell>
                       {jours.map((jour) => {
@@ -2108,16 +2108,17 @@ function Planning() {
               {uhrs.length > 0 && (
                 <TableRow sx={{ 
                   '& td': {
-                    borderTop: '2px solid #e0e0e0',
-                    backgroundColor: '#f8f9fa'
+                    borderBottom: '3px solid #90caf9',
+                    backgroundColor: '#e3f2fd',
+                    height: '40px'
                   }
                 }}>
                   <TableCell 
                     sx={{ 
                       width: '90px',
                       position: 'relative',
-                      backgroundColor: '#f8f9fa',
-                      borderRight: '1px solid #e0e0e0',
+                      backgroundColor: '#e3f2fd',
+                      borderRight: '1px solid #90caf9',
                       padding: '8px'
                     }}
                   >
@@ -2129,7 +2130,7 @@ function Planning() {
                       color: '#1976d2',
                       fontWeight: 'bold'
                     }}>
-                      Surveillance
+                      {t('planning.surveillanceLabel')}
                     </Box>
                   </TableCell>
                   {jours.map((jour) => {
@@ -2147,9 +2148,7 @@ function Planning() {
                       <TableCell 
                         key={`${jour}-after`}
                         sx={{ 
-                          height: '50px',
-                          bgcolor: '#f8f9fa',
-                          borderTop: '2px solid #e0e0e0',
+                          height: '50px', 
                           cursor: 'pointer',
                           verticalAlign: 'middle',
                           padding: '8px',

@@ -111,7 +111,7 @@ const AddCourseModal = ({
           >
             {classes && classes.map((classe) => (
               <MenuItem key={classe._id} value={classe.nom}>
-                {classe.nom} (nombre d'élèves: {classe.nombreEleves || 0})
+                {classe.nom} ({t('planning.numberOfStudents')}: {classe.nombreEleves || 0})
               </MenuItem>
             ))}
           </Select>
@@ -149,7 +149,7 @@ const AddCourseModal = ({
             }}
             label={t('planning.subject')}
           >
-            <MenuItem value="__all__">{t('planning.allSubjects', 'Toutes les matières')}</MenuItem>
+            <MenuItem value="__all__">{t('planning.allSubjects')}</MenuItem>
             {/* Afficher toutes les matières filtrées + la matière sélectionnée si absente */}
             {[
               ...filteredMatieres,
@@ -175,7 +175,7 @@ const AddCourseModal = ({
             onChange={(e) => setFormData({ ...formData, salle: e.target.value })}
             label={t('planning.room')}
           >
-            <MenuItem value="__all__">{t('planning.allRooms', 'Toutes les salles')}</MenuItem>
+            <MenuItem value="__all__">{t('planning.allRooms')}</MenuItem>
             {/* Afficher toutes les salles disponibles + la salle sélectionnée si absente */}
             {[
               ...sallesDisponibles,
@@ -188,7 +188,7 @@ const AddCourseModal = ({
               )
             ].map((salle) => (
               <MenuItem key={salle._id} value={salle.nom}>
-                {salle.nom} (capacité : {salle.capacite || 0} élèves)
+                {salle.nom} ({t('planning.capacity')} : {salle.capacite || 0} {t('planning.students')})
               </MenuItem>
             ))}
           </Select>

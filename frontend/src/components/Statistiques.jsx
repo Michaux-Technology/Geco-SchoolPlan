@@ -153,15 +153,27 @@ const Statistiques = () => {
     };
   }, []);
 
-  // Fonction pour obtenir le numéro de mois à partir de la semaine
-  const getMoisFromSemaine = (semaine) => {
-    // Approximation: chaque mois a environ 4 semaines
-    return Math.ceil(semaine / 4);
+  // Fonction pour obtenir le numéro de la semaine (même logique que dans Planning.jsx)
+  const getWeekNumber = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+    const week1 = new Date(d.getFullYear(), 0, 4);
+    return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+  };
+
+  // Fonction pour calculer le mois à partir de la semaine (plus précise)
+  const getMoisFromSemaine = (semaine, annee = new Date().getFullYear()) => {
+    // Calculer la date du début de la semaine
+    const debutAnnee = new Date(annee, 0, 1);
+    const joursPourSemaine = (semaine - 1) * 7;
+    const dateSemaine = new Date(debutAnnee.getTime() + joursPourSemaine * 24 * 60 * 60 * 1000);
+    return dateSemaine.getMonth() + 1; // +1 car getMonth() retourne 0-11
   };
 
   // Fonction pour calculer si une semaine appartient au mois sélectionné
-  const semaineAppartientAuMois = (semaine, mois) => {
-    const moisDeLaSemaine = getMoisFromSemaine(semaine);
+  const semaineAppartientAuMois = (semaine, mois, annee = new Date().getFullYear()) => {
+    const moisDeLaSemaine = getMoisFromSemaine(semaine, annee);
     return moisDeLaSemaine === mois;
   };
 
@@ -185,11 +197,11 @@ const Statistiques = () => {
       // Filtrer par période si nécessaire
       if (periodeActuelle === 'semaine') {
         // Pour la semaine, on prend la semaine actuelle
-        const semaineActuelle = Math.ceil(new Date().getDate() / 7);
+        const semaineActuelle = getWeekNumber(new Date());
         coursDeLEnseignant = coursDeLEnseignant.filter(cours => cours.semaine === semaineActuelle);
       } else if (periodeActuelle === 'mois') {
         coursDeLEnseignant = coursDeLEnseignant.filter(cours => 
-          semaineAppartientAuMois(cours.semaine, moisSelectionne)
+          semaineAppartientAuMois(cours.semaine, moisSelectionne, anneeSelectionnee)
         );
       } else if (periodeActuelle === 'annee') {
         coursDeLEnseignant = coursDeLEnseignant.filter(cours => 
@@ -321,7 +333,7 @@ const Statistiques = () => {
           alignItems: 'center',
           height: '100%'
         }}>
-          <Typography>{t('statistics.noDataAvailable')}</Typography>
+          <Typography>{t('statistics.noData')}</Typography>
         </Box>
       );
     }
@@ -417,7 +429,7 @@ const Statistiques = () => {
 
   // Fonction pour calculer les statistiques des matières
   const calculerStatistiquesMatiere = () => {
-    if (!selectedClasse || !cours || cours.length === 0) {
+    if (!cours || cours.length === 0) {
       setMatiereStats([]);
       return;
     }
@@ -426,13 +438,29 @@ const Statistiques = () => {
     const coursFiltres = cours.filter(cours => {
       if (cours.annule || !cours.classe) return false;
       
-      const appartientPeriode = periode === 'mois' 
-        ? semaineAppartientAuMois(cours.semaine, moisSelectionne)
-        : periode === 'annee'
-          ? (cours.annee || new Date().getFullYear()) === anneeSelectionnee
-          : true;
+      let appartientPeriode = true;
       
-      return cours.classe === selectedClasse && appartientPeriode;
+      if (periode === 'semaine') {
+        const semaineActuelle = getWeekNumber(new Date());
+        appartientPeriode = cours.semaine === semaineActuelle;
+      } else if (periode === 'mois') {
+        appartientPeriode = semaineAppartientAuMois(cours.semaine, moisSelectionne, anneeSelectionnee);
+      } else if (periode === 'annee') {
+        appartientPeriode = (cours.annee || new Date().getFullYear()) === anneeSelectionnee;
+      }
+      
+      // Si aucune classe n'est sélectionnée (toutes les classes), ne pas filtrer par classe
+      if (!selectedClasse || selectedClasse === '') {
+        return appartientPeriode;
+      }
+      
+      // Trouver l'objet classe par ID
+      const selectedClasseObj = classes.find(c => c._id === selectedClasse);
+      if (selectedClasseObj) {
+        return cours.classe === selectedClasseObj.nom && appartientPeriode;
+      }
+      
+      return appartientPeriode;
     });
 
     // Calculer le nombre d'heures par matière
@@ -473,11 +501,11 @@ const Statistiques = () => {
     
     if (periodeActuelle === 'semaine') {
       // Pour la semaine, on prend la semaine actuelle
-      const semaineActuelle = Math.ceil(new Date().getDate() / 7);
+      const semaineActuelle = getWeekNumber(new Date());
       coursFiltres = coursFiltres.filter(cours => cours.semaine === semaineActuelle);
     } else if (periodeActuelle === 'mois') {
       coursFiltres = coursFiltres.filter(cours => 
-        semaineAppartientAuMois(cours.semaine, moisSelectionne)
+        semaineAppartientAuMois(cours.semaine, moisSelectionne, anneeSelectionnee)
       );
     } else if (periodeActuelle === 'annee') {
       coursFiltres = coursFiltres.filter(cours => 
@@ -486,7 +514,7 @@ const Statistiques = () => {
     }
 
     // Filtrer par classe si une classe est sélectionnée
-    if (selectedClasse) {
+    if (selectedClasse && selectedClasse !== '') {
       const selectedClasseObj = classes.find(c => c._id === selectedClasse);
       if (selectedClasseObj) {
         coursFiltres = coursFiltres.filter(cours => cours.classe === selectedClasseObj.nom);

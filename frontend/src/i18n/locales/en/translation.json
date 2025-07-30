@@ -55,6 +55,7 @@
     "teachers": "Teachers",
     "subject": "Subject",
     "room": "Room",
+    "surveillanceLabel": "Surveillance",
     "all": "All",
     "replaced": "Replaced",
     "courseCancelled": "Course cancelled",
@@ -126,7 +127,12 @@
     "commentUpdateError": "Error updating comment",
     "surveillanceDropError": "Surveillances can only be dropped in surveillance zones",
     "courseDropError": "Courses can only be dropped in course zones",
-    "connectionError": "Server connection error"
+    "connectionError": "Server connection error",
+    "allSubjects": "All subjects",
+    "allRooms": "All rooms",
+    "numberOfStudents": "Number of students",
+    "capacity": "Capacity",
+    "students": "students"
   },
   "auth": {
     "login": "Login",
@@ -158,6 +164,7 @@
     "classes": "Classes",
     "rooms": "Rooms",
     "timeSlots": "Time Slots",
+    "qrCode": "QR Code Connection",
     "logout": "Logout",
     "statistics": "Statistics"
   },
@@ -262,7 +269,8 @@
     "numberCourses": "Number of Courses",
     "selectMonth": "Select Month",
     "selectYear": "Select Year",
-    "teacherHours": "Teaching hours by teacher"
+    "teacherHours": "Teaching hours by teacher",
+    "noData": "No data available"
   },
   "months": {
     "january": "January",

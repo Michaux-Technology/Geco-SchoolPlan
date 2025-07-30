@@ -44,7 +44,6 @@
     "courseUpdated": "Cours mis à jour avec succès",
     "courseDeleted": "Cours supprimé avec succès",
     "courseAddError": "Erreur lors de l'ajout du cours",
-    "noData": "Aucune donnée disponible",
     "deleteOptions": "Options de suppression",
     "whatDoYouWant": "Que souhaitez-vous faire avec ce cours ?",
     "deleteDefinitely": "Supprimer définitivement",
@@ -56,6 +55,7 @@
     "teachers": "Enseignants",
     "subject": "Matière",
     "room": "Salle",
+    "surveillanceLabel": "Surveillance",
     "all": "Tous",
     "replaced": "Remplacé",
     "courseCancelled": "Cours annulé",
@@ -127,7 +127,12 @@
     "commentUpdateError": "Erreur lors de la mise à jour du commentaire",
     "surveillanceDropError": "Les surveillances ne peuvent être glissées que dans les zones de surveillance",
     "courseDropError": "Les cours ne peuvent être glissés que dans les zones de cours",
-    "connectionError": "Erreur de connexion au serveur"
+    "connectionError": "Erreur de connexion au serveur",
+    "allSubjects": "Toutes les matières",
+    "allRooms": "Toutes les salles",
+    "numberOfStudents": "Nombre d'élèves",
+    "capacity": "Capacité",
+    "students": "élèves"
   },
   "auth": {
     "login": "Connexion",
@@ -159,6 +164,7 @@
     "classes": "Classes",
     "rooms": "Salles",
     "timeSlots": "Tranches horaires",
+    "qrCode": "QR Code Connexion",
     "logout": "Déconnexion",
     "statistics": "Statistiques"
   },

@@ -55,6 +55,7 @@
     "teachers": "Lehrer",
     "subject": "Fach",
     "room": "Raum",
+    "surveillanceLabel": "Aufsicht",
     "all": "Alle",
     "replaced": "Ersetzt",
     "courseCancelled": "Kurs abgesagt",
@@ -126,7 +127,12 @@
     "commentUpdateError": "Fehler beim Aktualisieren des Kommentars",
     "surveillanceDropError": "Aufsichten können nur in Aufsichtszonen abgelegt werden",
     "courseDropError": "Kurse können nur in Kurszonen abgelegt werden",
-    "connectionError": "Serververbindungsfehler"
+    "connectionError": "Serververbindungsfehler",
+    "allSubjects": "Alle Fächer",
+    "allRooms": "Alle Räume",
+    "numberOfStudents": "Anzahl der Schüler",
+    "capacity": "Kapazität",
+    "students": "Schüler"
   },
   "auth": {
     "login": "Anmelden",
@@ -158,6 +164,7 @@
     "classes": "Klassen",
     "rooms": "Räume",
     "timeSlots": "Zeitfenster",
+    "qrCode": "QR-Code Verbindung",
     "logout": "Abmelden",
     "statistics": "Statistik"
   },

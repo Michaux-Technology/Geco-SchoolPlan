@@ -184,7 +184,9 @@ This project is distributed under the **Business Source License 1.1**, which mea
 
 To use **Geco-SchoolPlan** in a production environment (schools, companies, public servers, etc.), you must obtain a **commercial license**.
 
-📩 License contact: **michaux@free.fr**
+📩 License contact: 
+**michaux@free.fr**
+**michaux@magenda.de**
 
 ---
 

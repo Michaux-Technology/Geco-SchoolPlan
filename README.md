@@ -62,6 +62,7 @@ You can try **Geco-SchoolPlan** online at the following address:
 - 🔒 JWT-based authentication
 - 🛡️ Login attempt limitation
 - 🧩 Role-based access control
+- 🔐 **Encrypted QR codes** for secure mobile authentication
 - 🌐 Multilingual support:
   
    **System interface languages**:
@@ -114,10 +115,16 @@ You can try **Geco-SchoolPlan** online at the following address:
    VITE_ELEVE_PASSWORD=1234
    VITE_ENSEIGNANT_USERNAME=enseignant
    VITE_ENSEIGNANT_PASSWORD=1234
+   VITE_ENCRYPTION_KEY=votre_cle_secrete_unique_32_caracteres
    ```
 xxx.xxx.xxx.xxx is your Server Backend IP
 
 VITE_ELEVE and VITE_ENSEIGNANT are used for QR Code
+
+**🔐 QR Code Encryption (Optional but Recommended):**
+- `VITE_ENCRYPTION_KEY`: Secret key for encrypting QR code data (32 characters)
+- Add `ENCRYPTION_KEY=votre_cle_secrete_unique_32_caracteres` to backend `.env`
+- See `QR_CODE_ENCRYPTION.md` for detailed configuration
 
 ---
 

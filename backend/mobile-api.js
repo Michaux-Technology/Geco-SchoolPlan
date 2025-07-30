@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const Enseignant = require('./models/Enseignant');
 const Cours = require('./models/Cours');
 const Classe = require('./models/Classe');
@@ -7,14 +8,72 @@ const Uhr = require('./models/Uhr');
 const Surveillance = require('./models/Surveillance');
 
 module.exports = (app, { checkLoginAttempts, defaultUsers, JWT_SECRET, loginAttempts }) => {
-// --- Début du code extrait ---
-// (Collé depuis server.js lignes 1175 à 1240)
 
+// Clé de décryptage (doit correspondre à celle du frontend)
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+// Fonction pour décrypter les données QR
+const decryptQRData = (encryptedData) => {
+  try {
+    const algorithm = 'aes-256-cbc';
+    const key = Buffer.from(ENCRYPTION_KEY.padEnd(32, '0').substring(0, 32), 'utf8');
+    const iv = Buffer.from('0000000000000000', 'utf8');
+    
+    const decipher = crypto.createDecipheriv(algorithm, key, iv);
+    let decrypted = decipher.update(encryptedData, 'base64', 'utf8');
+    decrypted += decipher.final('utf8');
+    
+    return JSON.parse(decrypted);
+  } catch (error) {
+    console.error('Erreur lors du décryptage:', error);
+    return null;
+  }
+};
+
+// Fonction pour valider le timestamp (QR code valide pendant 24h)
+const validateTimestamp = (timestamp) => {
+  const now = Date.now();
+  const qrAge = now - timestamp;
+  const maxAge = 24 * 60 * 60 * 1000; // 24 heures
+  
+  return qrAge <= maxAge;
+};
+
+// Route de connexion mobile avec support des QR codes cryptés
 app.post('/api/mobile/login', checkLoginAttempts, (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, qrData } = req.body;
+
+  let loginData = { username, password };
+
+  // Si des données QR sont fournies, essayer de les décrypter
+  if (qrData) {
+    try {
+      const decryptedData = decryptQRData(qrData);
+      
+      if (!decryptedData) {
+        return res.status(400).json({ message: 'QR code invalide ou corrompu' });
+      }
+
+      // Valider le timestamp
+      if (!validateTimestamp(decryptedData.timestamp)) {
+        return res.status(400).json({ message: 'QR code expiré (plus de 24h)' });
+      }
+
+      // Utiliser les données décryptées
+      loginData = {
+        username: decryptedData.username,
+        password: decryptedData.password
+      };
+
+      console.log('Connexion via QR code crypté pour:', decryptedData.role);
+    } catch (error) {
+      console.error('Erreur lors du décryptage du QR code:', error);
+      return res.status(400).json({ message: 'QR code invalide' });
+    }
+  }
 
   // Vérifier si l'utilisateur existe
-  const user = defaultUsers.find(u => u.username === username);
+  const user = defaultUsers.find(u => u.username === loginData.username);
   
   if (!user) {
     // Incrémenter le compteur de tentatives
@@ -28,7 +87,7 @@ app.post('/api/mobile/login', checkLoginAttempts, (req, res) => {
   }
 
   // Vérifier le mot de passe
-  if (user.password !== password) {
+  if (user.password !== loginData.password) {
     // Incrémenter le compteur de tentatives
     const ip = req.ip;
     const attempts = loginAttempts.get(ip) || { count: 0, lastAttempt: 0 };
@@ -248,5 +307,4 @@ app.get('/api/mobile/planning/classe/:classeId', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-// --- Fin du code extrait ---
 } 

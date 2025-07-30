@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import QRCode from 'qrcode';
+import CryptoJS from 'crypto-js';
 
 const backendUrl = import.meta.env.VITE_API_URL || 'URL_BACKEND_NON_TROUVEE';
 const schoolName = import.meta.env.VITE_SCHOOL_NAME || 'École non définie';
@@ -9,22 +10,51 @@ const elevePassword = import.meta.env.VITE_ELEVE_PASSWORD;
 const enseignantUsername = import.meta.env.VITE_ENSEIGNANT_USERNAME;
 const enseignantPassword = import.meta.env.VITE_ENSEIGNANT_PASSWORD;
 
-const qrDataEleve = JSON.stringify({
-  backend: backendUrl,
-  schoolName: schoolName,
-  username: eleveUsername,
-  password: elevePassword
-});
+// Clé de cryptage unique pour l'école (peut être générée automatiquement)
+const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY || 'geco-school-plan-2024-secure-key';
 
-const qrDataEnseignant = JSON.stringify({
-  backend: backendUrl,
-  schoolName: schoolName,
-  username: enseignantUsername,
-  password: enseignantPassword
-});
+// Fonction pour crypter les données
+const encryptData = (data) => {
+  try {
+    const jsonString = JSON.stringify(data);
+    // Utiliser AES-256-CBC avec une clé dérivée
+    const key = CryptoJS.enc.Utf8.parse(ENCRYPTION_KEY.padEnd(32, '0').substring(0, 32));
+    const iv = CryptoJS.enc.Utf8.parse('0000000000000000');
+    
+    const encrypted = CryptoJS.AES.encrypt(jsonString, key, {
+      iv: iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    });
+    
+    return encrypted.toString();
+  } catch (error) {
+    console.error('Erreur lors du cryptage:', error);
+    return null;
+  }
+};
 
-console.log('Données QR code élève:', qrDataEleve);
-console.log('Données QR code enseignant:', qrDataEnseignant);
+// Fonction pour créer des données QR sécurisées
+const createSecureQRData = (username, password, role) => {
+  const timestamp = Date.now();
+  const data = {
+    backend: backendUrl,
+    schoolName: schoolName,
+    username: username,
+    password: password,
+    role: role,
+    timestamp: timestamp,
+    version: '1.0'
+  };
+  
+  return encryptData(data);
+};
+
+const qrDataEleve = createSecureQRData(eleveUsername, elevePassword, 'eleve');
+const qrDataEnseignant = createSecureQRData(enseignantUsername, enseignantPassword, 'enseignant');
+
+console.log('Données QR code élève (cryptées):', qrDataEleve ? 'CRYPTED_DATA' : 'ERREUR_CRYPTAGE');
+console.log('Données QR code enseignant (cryptées):', qrDataEnseignant ? 'CRYPTED_DATA' : 'ERREUR_CRYPTAGE');
 
 const QRCodePage = () => {
   const { t } = useTranslation();

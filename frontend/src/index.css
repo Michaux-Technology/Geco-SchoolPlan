@@ -85,4 +85,47 @@ button:focus-visible {
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+}
+
+/* Styles pour forcer la scrollbar verticale sur toute la page en mode smartphone */
+@media (max-width: 768px) {
+  html, body {
+    overflow-y: scroll !important;
+    min-height: 200vh !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  #root {
+    min-height: 200vh !important;
+  }
+  
+  /* Forcer l'affichage de la scrollbar verticale */
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 8px !important;
+    -webkit-appearance: none !important;
+  }
+  
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1) !important;
+    border-radius: 4px !important;
+  }
+  
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-radius: 4px !important;
+  }
+  
+  html::-webkit-scrollbar-thumb:hover,
+  body::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5) !important;
+  }
+  
+  /* Forcer l'affichage de la scrollbar sur Firefox */
+  html, body {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1) !important;
+  }
 } 

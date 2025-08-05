@@ -551,9 +551,18 @@ const Statistiques = () => {
         display: 'flex', 
         flexDirection: 'column',
         gap: 4,
-        p: 3
+        p: 3,
+        '@media (max-width: 768px)': {
+          p: 1,
+          gap: 2
+        }
       }}>
-        <Typography variant="h4" gutterBottom>
+        <Typography variant="h4" gutterBottom sx={{
+          '@media (max-width: 768px)': {
+            fontSize: '1.5rem',
+            textAlign: 'center'
+          }
+        }}>
           {t('statistics.title')}
         </Typography>
 
@@ -563,8 +572,23 @@ const Statistiques = () => {
             title={t('statistics.coursesBySubject')}
             subheader={t('statistics.coursesBySubjectDescription')}
             action={
-              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                <FormControl size="small" sx={{ minWidth: 200 }}>
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 2, 
+                alignItems: 'center',
+                '@media (max-width: 768px)': {
+                  flexDirection: 'column',
+                  gap: 1,
+                  width: '100%'
+                }
+              }}>
+                <FormControl size="small" sx={{ 
+                  minWidth: 200,
+                  '@media (max-width: 768px)': {
+                    minWidth: '100%',
+                    width: '100%'
+                  }
+                }}>
                   <InputLabel>{t('statistics.class')}</InputLabel>
                   <Select
                     value={selectedClasse}
@@ -579,7 +603,13 @@ const Statistiques = () => {
                     ))}
                   </Select>
                 </FormControl>
-                <FormControl size="small" sx={{ minWidth: 120 }}>
+                <FormControl size="small" sx={{ 
+                  minWidth: 120,
+                  '@media (max-width: 768px)': {
+                    minWidth: '100%',
+                    width: '100%'
+                  }
+                }}>
                   <InputLabel>{t('statistics.period')}</InputLabel>
                   <Select
                     value={periode}
@@ -635,7 +665,18 @@ const Statistiques = () => {
                 <BarChart
                   height={400}
                   data={coursParMatiere}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                  margin={{ 
+                    top: 20, 
+                    right: 30, 
+                    left: 20, 
+                    bottom: 60,
+                    '@media (max-width: 768px)': {
+                      top: 10,
+                      right: 10,
+                      left: 10,
+                      bottom: 80
+                    }
+                  }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
@@ -648,6 +689,11 @@ const Statistiques = () => {
                     angle={-45}
                     textAnchor="end"
                     height={100}
+                    sx={{
+                      '@media (max-width: 768px)': {
+                        fontSize: '10px'
+                      }
+                    }}
                   />
                   <YAxis 
                     label={{ 
@@ -689,8 +735,23 @@ const Statistiques = () => {
             title={t('statistics.coursesByTeacher')}
             subheader={t('statistics.coursesByTeacherDescription')}
             action={
-              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                <FormControl size="small" sx={{ minWidth: 200 }}>
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 2, 
+                alignItems: 'center',
+                '@media (max-width: 768px)': {
+                  flexDirection: 'column',
+                  gap: 1,
+                  width: '100%'
+                }
+              }}>
+                <FormControl size="small" sx={{ 
+                  minWidth: 200,
+                  '@media (max-width: 768px)': {
+                    minWidth: '100%',
+                    width: '100%'
+                  }
+                }}>
                   <InputLabel>{t('statistics.teachers')}</InputLabel>
                   <Select
                     multiple
@@ -706,7 +767,13 @@ const Statistiques = () => {
                     ))}
                   </Select>
                 </FormControl>
-                <FormControl size="small" sx={{ minWidth: 120 }}>
+                <FormControl size="small" sx={{ 
+                  minWidth: 120,
+                  '@media (max-width: 768px)': {
+                    minWidth: '100%',
+                    width: '100%'
+                  }
+                }}>
                   <InputLabel>{t('statistics.period')}</InputLabel>
                   <Select
                     value={periode}
@@ -762,7 +829,18 @@ const Statistiques = () => {
                 <BarChart
                   height={400}
                   data={coursParPeriode}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                  margin={{ 
+                    top: 20, 
+                    right: 30, 
+                    left: 20, 
+                    bottom: 60,
+                    '@media (max-width: 768px)': {
+                      top: 10,
+                      right: 10,
+                      left: 10,
+                      bottom: 80
+                    }
+                  }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
@@ -775,6 +853,11 @@ const Statistiques = () => {
                     angle={-45}
                     textAnchor="end"
                     height={100}
+                    sx={{
+                      '@media (max-width: 768px)': {
+                        fontSize: '10px'
+                      }
+                    }}
                   />
                   <YAxis 
                     label={{ 

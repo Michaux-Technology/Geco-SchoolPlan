@@ -1579,15 +1579,23 @@ function Planning() {
       <DragDropContext
         onDragEnd={handleDragEnd}
       >
-        <TableContainer 
-          component={Paper} 
-          sx={{ 
-            width: '100%',
-            height: 'auto',
-            maxHeight: '100%',
-            overflow: 'visible'
-          }}
-        >
+                 <TableContainer 
+           component={Paper} 
+           sx={{ 
+             width: '100%',
+             height: 'auto',
+             maxHeight: 'none',
+             overflow: 'visible',
+             '@media (max-width: 1024px)': {
+               overflowX: 'auto',
+               overflowY: 'auto',
+               height: 'auto',
+               maxHeight: 'none',
+               minHeight: '300vh',
+               '-webkit-overflow-scrolling': 'touch'
+             }
+           }}
+         >
           <Table stickyHeader aria-label="planning table">
             <TableHead>
               <TableRow>
@@ -1784,7 +1792,15 @@ function Planning() {
                       const coursCell = getCoursForCell(jour, uhr._id);
                       const droppableId = `${jour}-${uhr._id}`;
                       return (
-                        <TableCell key={droppableId} sx={{ height: '150px', padding: '6px', bgcolor: 'background.paper' }}>
+                                                 <TableCell key={droppableId} sx={{ 
+                           height: '150px', 
+                           padding: '6px', 
+                           bgcolor: 'background.paper',
+                           '@media (max-width: 1024px)': {
+                             height: 'auto',
+                             minHeight: '150px'
+                           }
+                         }}>
                           <Box
                             sx={{
                               minWidth: 200,

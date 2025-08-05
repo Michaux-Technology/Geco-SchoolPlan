@@ -75,4 +75,44 @@
   padding: 16px;
   background-color: #f5f5f5;
   border-radius: 4px;
+}
+
+/* Styles pour forcer les scrollbars sur tablette et smartphone */
+@media (max-width: 1024px) {
+  /* Forcer le tableau à avoir des scrollbars */
+  .MuiTableContainer-root {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    max-height: none !important;
+    height: auto !important;
+    min-height: 200vh !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Forcer l'affichage des scrollbars */
+  .MuiTableContainer-root::-webkit-scrollbar {
+    height: 8px !important;
+    width: 8px !important;
+    -webkit-appearance: none !important;
+  }
+  
+  .MuiTableContainer-root::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1) !important;
+    border-radius: 4px !important;
+  }
+  
+  .MuiTableContainer-root::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-radius: 4px !important;
+  }
+  
+  .MuiTableContainer-root::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5) !important;
+  }
+  
+  /* Forcer l'affichage des scrollbars sur Firefox */
+  .MuiTableContainer-root {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.1) !important;
+  }
 } 

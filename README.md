@@ -42,6 +42,11 @@ You can try **Geco-SchoolPlan** online at the following address:
 
 - ✉️ **Email**: `test@test.com`  
 - 🔒 **Password**: `123456`
+
+The Android application for Teacher and Student:  
+[Releases](https://github.com/Michaux-Technology/Geco-SchoolPlan-App/releases) 
+
+
 ---
   
 ## 💡 My services ?

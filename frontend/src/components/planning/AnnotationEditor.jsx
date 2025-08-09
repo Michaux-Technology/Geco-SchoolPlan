@@ -52,8 +52,71 @@ const annotationStyle = {
 };
 
 const AnnotationEditor = ({ jour, annotation, currentWeek, socket }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { enqueueSnackbar } = useSnackbar();
+
+  // Fonction pour convertir le jour traduit vers le format français pour la base de données
+  const convertToFrenchDay = (translatedDay) => {
+    // Vérifier si le paramètre est valide
+    if (!translatedDay) {
+      console.warn('convertToFrenchDay: jour non défini ou invalide', { translatedDay });
+      return 'Lundi'; // Valeur par défaut
+    }
+
+    // Vérifier si le jour est déjà en français
+    const joursFrancais = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+    if (joursFrancais.includes(translatedDay)) {
+      return translatedDay;
+    }
+
+    try {
+      // Créer un mapping pour chaque langue possible
+      const dayMappings = {
+        // Français (clés i18n)
+        [t('planning.days.monday')]: 'Lundi',
+        [t('planning.days.tuesday')]: 'Mardi',
+        [t('planning.days.wednesday')]: 'Mercredi',
+        [t('planning.days.thursday')]: 'Jeudi',
+        [t('planning.days.friday')]: 'Vendredi',
+        
+        // Anglais
+        'Monday': 'Lundi',
+        'Tuesday': 'Mardi',
+        'Wednesday': 'Mercredi',
+        'Thursday': 'Jeudi',
+        'Friday': 'Vendredi'
+      };
+
+      // Ajouter des mappings pour d'autres langues si nécessaire
+      if (i18n.language === 'de') {
+        Object.assign(dayMappings, {
+          'Montag': 'Lundi',
+          'Dienstag': 'Mardi',
+          'Mittwoch': 'Mercredi',
+          'Donnerstag': 'Jeudi',
+          'Freitag': 'Vendredi'
+        });
+      }
+
+      if (i18n.language === 'es') {
+        Object.assign(dayMappings, {
+          'Lunes': 'Lundi',
+          'Martes': 'Mardi',
+          'Miércoles': 'Mercredi',
+          'Jueves': 'Jeudi',
+          'Viernes': 'Vendredi'
+        });
+      }
+
+      // Retourner la conversion ou le jour original si pas trouvé
+      const frenchDay = dayMappings[translatedDay] || translatedDay;
+      console.log('convertToFrenchDay:', { translatedDay, frenchDay, language: i18n.language });
+      return frenchDay;
+    } catch (error) {
+      console.error('Erreur dans convertToFrenchDay:', error);
+      return translatedDay; // Retourner le jour original en cas d'erreur
+    }
+  };
   const [isEditing, setIsEditing] = useState(false);
   const [localAnnotation, setLocalAnnotation] = useState(annotation || '');
 
@@ -68,8 +131,11 @@ const AnnotationEditor = ({ jour, annotation, currentWeek, socket }) => {
 
   const handleAnnotationSave = () => {
     if (socket) {
+      // Convertir le jour traduit en jour français pour la base de données
+      const frenchDay = convertToFrenchDay(jour);
+      
       const data = {
-        jour: jour,
+        jour: frenchDay,
         annotation: localAnnotation,
         semaine: getWeekNumber(currentWeek),
         date: currentWeek,

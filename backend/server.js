@@ -1474,8 +1474,45 @@ io.on('connection', (socket) => {
         throw new Error('Données manquantes pour la sauvegarde de l\'annotation');
       }
 
-      // Normaliser le format du jour
-      const normalizedJour = jour.charAt(0).toUpperCase() + jour.slice(1).toLowerCase();
+      // Fonction pour convertir tous les jours vers le français
+      const convertToFrenchDay = (day) => {
+        if (!day) return 'Lundi';
+        
+        // Si déjà en français
+        const joursFrancais = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+        if (joursFrancais.includes(day)) {
+          return day;
+        }
+
+        // Mappings pour toutes les langues
+        const dayMappings = {
+          // Allemand
+          'Montag': 'Lundi',
+          'Dienstag': 'Mardi', 
+          'Mittwoch': 'Mercredi',
+          'Donnerstag': 'Jeudi',
+          'Freitag': 'Vendredi',
+          
+          // Anglais
+          'Monday': 'Lundi',
+          'Tuesday': 'Mardi',
+          'Wednesday': 'Mercredi', 
+          'Thursday': 'Jeudi',
+          'Friday': 'Vendredi',
+          
+          // Espagnol
+          'Lunes': 'Lundi',
+          'Martes': 'Mardi',
+          'Miércoles': 'Mercredi',
+          'Jueves': 'Jeudi',
+          'Viernes': 'Vendredi'
+        };
+
+        return dayMappings[day] || day;
+      };
+
+      // Convertir le jour en français
+      const normalizedJour = convertToFrenchDay(jour);
       
       // Rechercher une annotation existante pour ce jour et cette semaine
       let existingAnnotation = await Annotation.findOne({ 
